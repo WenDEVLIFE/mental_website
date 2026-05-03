@@ -5,73 +5,265 @@
 
 <PageTitle>Manage Students</PageTitle>
 
-<h1 style="color: var(--primary); margin-bottom: 20px;">Manage Students</h1>
-<p>Verifies and updates student information, and monitors assessment results.</p>
-
-<div class="card p-4">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Course & Year</th>
-                <th>Email</th>
-                <th>Latest Assessment</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Students == null)
-            {
-                <tr><td colspan="6">Loading...</td></tr>
-            }
-            else if (!Students.Any())
-            {
-                <tr><td colspan="6">No students found.</td></tr>
-            }
-            else
-            {
-                @foreach (var s in Students)
-                {
-                    <tr>
-                        <td>@s.StudentId</td>
-                        <td>@s.FirstName @s.LastName</td>
-                        <td>@s.Course - Year @s.YearLevel</td>
-                        <td>@s.Email</td>
-                        <td>
-                            @{
-                                var lastAss = Assessments.FirstOrDefault(a => a.StudentId == s.StudentId);
-                                if (lastAss != null)
-                                {
-                                    <span class="badge bg-info text-dark">Score: @lastAss.Score</span>
-                                    <small class="d-block text-muted">@lastAss.Result</small>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">None</span>
-                                }
-                            }
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary">Edit</button>
-                            <button class="btn btn-sm btn-outline-danger">Suspend</button>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h1 style="color: var(--primary); margin: 0; font-weight: 700;">Manage Students</h1>
+        <p style="color: var(--text-secondary); margin-top: 5px;">View, add, edit, or remove student accounts.</p>
+    </div>
+    <button class="btn-primary" @onclick="ShowAddModal">
+        <span class="bi bi-person-plus" style="margin-right: 8px;"></span> Add New Student
+    </button>
 </div>
 
+<div class="card p-4">
+    <div class="mb-4">
+        <input type="text" class="form-control" placeholder="Search students by name or email..." @bind="SearchTerm" @bind:event="oninput" />
+    </div>
+
+    <div class="table-responsive">
+        <table class="table custom-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Course & Year</th>
+                    <th>Contact</th>
+                    <th>Assessment Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (FilteredStudents == null)
+                {
+                    <tr><td colspan="5" class="text-center p-5">Loading student data...</td></tr>
+                }
+                else if (!FilteredStudents.Any())
+                {
+                    <tr><td colspan="5" class="text-center p-5">No students match your search.</td></tr>
+                }
+                else
+                {
+                    @foreach (var s in FilteredStudents)
+                    {
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="avatar">@(s.FirstName[0])@(s.LastName[0])</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--primary);">@s.FirstName @s.LastName</div>
+                                        <div style="font-size: 0.8rem; color: #999;">ID: #@s.StudentId</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 500;">@s.Course</div>
+                                <div style="font-size: 0.85rem; color: #666;">Year @s.YearLevel</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 0.9rem;">@s.Email</div>
+                                <div style="font-size: 0.85rem; color: #666;">@s.ContactNumber</div>
+                            </td>
+                            <td>
+                                @{
+                                    var lastAss = Assessments.FirstOrDefault(a => a.StudentId == s.StudentId);
+                                    if (lastAss != null)
+                                    {
+                                        <span class="status-badge @GetStatusClass(lastAss.Result)">@lastAss.Result</span>
+                                        <div style="font-size: 0.75rem; color: #999; margin-top: 4px;">Score: @lastAss.Score%</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge" style="background: #f5f5f5; color: #999;">No Data</span>
+                                    }
+                                }
+                            </td>
+                            <td class="text-end">
+                                <button class="btn-icon edit" @onclick="() => EditStudent(s)" title="Edit">
+                                    <span class="bi bi-pencil"></span>
+                                </button>
+                                <button class="btn-icon delete" @onclick="() => ConfirmDelete(s)" title="Delete">
+                                    <span class="bi bi-trash"></span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (ShowModal)
+{
+    <div class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>@(EditingStudent.StudentId == 0 ? "Add New Student" : "Edit Student")</h3>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-control" @bind="EditingStudent.FirstName" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-control" @bind="EditingStudent.LastName" />
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" @bind="EditingStudent.Email" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Course</label>
+                        <input type="text" class="form-control" @bind="EditingStudent.Course" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Year Level</label>
+                        <select class="form-select" @bind="EditingStudent.YearLevel">
+                            <option value="1">Year 1</option>
+                            <option value="2">Year 2</option>
+                            <option value="3">Year 3</option>
+                            <option value="4">Year 4</option>
+                            <option value="5">Year 5</option>
+                        </select>
+                    </div>
+                    @if (EditingStudent.StudentId == 0)
+                    {
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" @bind="NewPassword" placeholder="Initial password" />
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn-primary" @onclick="SaveStudent">Save Student</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; }
+    .card { background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #f0f0f0; }
+    .custom-table th { border-top: none; color: #999; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; padding: 15px; }
+    .custom-table td { vertical-align: middle; padding: 15px; border-bottom: 1px solid #f9f9f9; }
+    .avatar { width: 40px; height: 40px; border-radius: 12px; background: #e8f5e9; color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; }
+    .status-badge { padding: 4px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; }
+    .status-good { background: #e8f5e9; color: #2e7d32; }
+    .status-warning { background: #fff3e0; color: #ef6c00; }
+    .status-danger { background: #ffebee; color: #c62828; }
+    .btn-icon { width: 34px; height: 34px; border-radius: 8px; border: none; background: #f5f5f5; color: #666; transition: all 0.2s; cursor: pointer; }
+    .btn-icon.edit:hover { background: #e3f2fd; color: #1976d2; }
+    .btn-icon.delete:hover { background: #ffebee; color: #c62828; }
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; border-radius: 24px; width: 500px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .modal-header h3 { margin: 0; color: var(--primary); font-weight: 700; }
+    .close-btn { background: none; border: none; font-size: 1.8rem; color: #999; cursor: pointer; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; }
+    .form-control, .form-select { border-radius: 10px; border: 1px solid #ddd; padding: 10px 15px; }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1); }
+</style>
+
 @code {
-    private List<Mental_web.Data.Student> Students = new();
+    private List<Mental_web.Data.Student>? Students;
     private List<Mental_web.Data.SelfAssessment> Assessments = new();
+    private string SearchTerm = "";
+    private bool ShowModal = false;
+    private Mental_web.Data.Student EditingStudent = new();
+    private string NewPassword = "";
+
+    private IEnumerable<Mental_web.Data.Student>? FilteredStudents => string.IsNullOrWhiteSpace(SearchTerm) 
+        ? Students 
+        : Students?.Where(s => (s.FirstName + " " + s.LastName).Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) || s.Email.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
     {
         Students = await DbContext.Students.ToListAsync();
         Assessments = await DbContext.SelfAssessments
             .OrderByDescending(a => a.DateTaken)
             .ToListAsync();
     }
+
+    private void ShowAddModal()
+    {
+        EditingStudent = new Mental_web.Data.Student { YearLevel = 1 };
+        NewPassword = "";
+        ShowModal = true;
+    }
+
+    private void EditStudent(Mental_web.Data.Student s)
+    {
+        EditingStudent = new Mental_web.Data.Student 
+        { 
+            StudentId = s.StudentId,
+            FirstName = s.FirstName,
+            LastName = s.LastName,
+            Email = s.Email,
+            Course = s.Course,
+            YearLevel = s.YearLevel,
+            ContactNumber = s.ContactNumber,
+            PasswordHash = s.PasswordHash,
+            CreatedAt = s.CreatedAt
+        };
+        ShowModal = true;
+    }
+
+    private async Task SaveStudent()
+    {
+        if (EditingStudent.StudentId == 0)
+        {
+            // Add New
+            EditingStudent.CreatedAt = DateTime.Now;
+            EditingStudent.PasswordHash = string.IsNullOrWhiteSpace(NewPassword) ? "123456" : NewPassword; // Simple password for now
+            DbContext.Students.Add(EditingStudent);
+        }
+        else
+        {
+            // Update Existing
+            var existing = await DbContext.Students.FindAsync(EditingStudent.StudentId);
+            if (existing != null)
+            {
+                existing.FirstName = EditingStudent.FirstName;
+                existing.LastName = EditingStudent.LastName;
+                existing.Email = EditingStudent.Email;
+                existing.Course = EditingStudent.Course;
+                existing.YearLevel = EditingStudent.YearLevel;
+                DbContext.Students.Update(existing);
+            }
+        }
+
+        await DbContext.SaveChangesAsync();
+        await LoadData();
+        ShowModal = false;
+    }
+
+    private async Task ConfirmDelete(Mental_web.Data.Student s)
+    {
+        // For production, maybe add a confirmation dialog. For now, delete directly.
+        DbContext.Students.Remove(s);
+        await DbContext.SaveChangesAsync();
+        await LoadData();
+    }
+
+    private void CloseModal()
+    {
+        ShowModal = false;
+    }
+
+    private string GetStatusClass(string? result) => (result ?? "").ToLower() switch
+    {
+        "excellent standing" => "status-good",
+        "moderate stress" => "status-warning",
+        "high support needed" => "status-danger",
+        _ => ""
+    };
 }
