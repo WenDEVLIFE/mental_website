@@ -1,0 +1,6 @@
+@Mental_web_HostAddress = http://localhost:5238
+
+GET {{Mental_web_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

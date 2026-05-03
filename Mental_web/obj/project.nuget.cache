@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "eyFZ4dtBfbk=",
+  "success": true,
+  "projectFilePath": "/Users/frouen/web/mental_website/Mental_web/Mental_web.csproj",
+  "expectedPackageFiles": [
+    "/Users/frouen/.nuget/packages/microsoft.aspnetcore.openapi/10.0.7/microsoft.aspnetcore.openapi.10.0.7.nupkg.sha512",
+    "/Users/frouen/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
