@@ -46,7 +46,7 @@
             {
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     @r.Title (@r.ContentType)
-                    <button class="btn btn-sm btn-danger">Delete</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteResource(r)">Delete</button>
                 </li>
             }
         </ul>
@@ -73,8 +73,8 @@
         <div class="card p-3">
             <h4>Send System Announcements</h4>
             <small class="text-muted mb-2">Sends notifications and reminders to users.</small>
-            <textarea class="form-control mb-2" rows="3" placeholder="Enter announcement text..."></textarea>
-            <button class="btn btn-primary">Send Announcement</button>
+            <textarea class="form-control mb-2" rows="3" placeholder="Enter announcement text..." @bind="NewAnnouncement"></textarea>
+            <button class="btn btn-primary" @onclick="SendAnnouncement">Send Announcement</button>
         </div>
     </div>
 </div>
@@ -87,11 +87,17 @@
     private bool ManageResources = false;
     private string NewResourceTitle = "";
     private string NewResourceType = "";
+    private string NewAnnouncement = "";
     
     private List<Mental_web.Data.ActivityLog> Logs = new();
     private List<Mental_web.Data.Resource> Resources = new();
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    
+    private async Task LoadData()
     {
         TotalStudents = await DbContext.Students.CountAsync();
         PendingAppointments = await DbContext.Appointments.CountAsync(a => a.Status == "Pending");
@@ -106,16 +112,40 @@
         if(!string.IsNullOrWhiteSpace(NewResourceTitle))
         {
             DbContext.Resources.Add(new Mental_web.Data.Resource { Title = NewResourceTitle, ContentType = NewResourceType, ContentBody = "Placeholder" });
-            
-            // Add Activity Log
             DbContext.ActivityLogs.Add(new Mental_web.Data.ActivityLog { UserId = 1, Role = "Admin", Action = $"Added resource: {NewResourceTitle}" });
-            
             await DbContext.SaveChangesAsync();
             NewResourceTitle = "";
             NewResourceType = "";
-            TotalResources = await DbContext.Resources.CountAsync();
-            Resources = await DbContext.Resources.ToListAsync();
-            Logs = await DbContext.ActivityLogs.OrderByDescending(l => l.Timestamp).Take(5).ToListAsync();
+            await LoadData();
+        }
+    }
+    
+    private async Task DeleteResource(Mental_web.Data.Resource res)
+    {
+        DbContext.Resources.Remove(res);
+        DbContext.ActivityLogs.Add(new Mental_web.Data.ActivityLog { UserId = 1, Role = "Admin", Action = $"Deleted resource: {res.Title}" });
+        await DbContext.SaveChangesAsync();
+        await LoadData();
+    }
+
+    private async Task SendAnnouncement()
+    {
+        if(!string.IsNullOrWhiteSpace(NewAnnouncement))
+        {
+            // Fetch all students to send to
+            var students = await DbContext.Students.ToListAsync();
+            foreach(var s in students)
+            {
+                DbContext.Notifications.Add(new Mental_web.Data.Notification {
+                    StudentId = s.StudentId,
+                    Message = NewAnnouncement,
+                    IsRead = false
+                });
+            }
+            DbContext.ActivityLogs.Add(new Mental_web.Data.ActivityLog { UserId = 1, Role = "Admin", Action = $"Sent global announcement: {NewAnnouncement}" });
+            await DbContext.SaveChangesAsync();
+            NewAnnouncement = "";
+            await LoadData();
         }
     }
 }
