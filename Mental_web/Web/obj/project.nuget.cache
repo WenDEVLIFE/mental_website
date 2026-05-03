@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "zwgooLDLjQ0=",
+  "success": true,
+  "projectFilePath": "/Users/frouen/web/mental_website/Mental_web/Web/Mental_web_Web.csproj",
+  "expectedPackageFiles": [
+    "/Users/frouen/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.7/microsoft.aspnetcore.app.internal.assets.10.0.7.nupkg.sha512"
+  ],
+  "logs": []
+}

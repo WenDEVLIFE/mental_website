@@ -1,0 +1,69 @@
+@page "/appointments"
+
+<h1 style="color: var(--primary); margin-bottom: 30px;">Book an Appointment</h1>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: var(--primary);">Select Date</h3>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; text-align: center;">
+            @foreach (var day in new[] { "S", "M", "T", "W", "T", "F", "S" })
+            {
+                <div style="font-weight: bold; color: var(--text-secondary);">@day</div>
+            }
+            @for (int i = 1; i <= 31; i++)
+            {
+                var d = i;
+                <div class="calendar-day @(selectedDay == d ? "active" : "")" @onclick="() => selectedDay = d">@i</div>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: 20px; color: var(--primary);">Available Time</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+            @foreach (var time in times)
+            {
+                <div class="time-slot @(selectedTime == time ? "active" : "")" @onclick="() => selectedTime = time">@time</div>
+            }
+        </div>
+        <button class="btn-book" @onclick="Book">Confirm Booking</button>
+    </div>
+</div>
+
+@if (showToast)
+{
+    <div class="toast">Appointment Requested Successfully!</div>
+}
+
+@code {
+    private int? selectedDay;
+    private string? selectedTime;
+    private bool showToast = false;
+    private string[] times = { "08:00 AM", "09:30 AM", "11:00 AM", "01:30 PM", "03:00 PM" };
+
+    private async Task Book()
+    {
+        if (selectedDay != null && selectedTime != null)
+        {
+            showToast = true;
+            StateHasChanged();
+            await Task.Delay(3000);
+            showToast = false;
+            StateHasChanged();
+        }
+    }
+}
+
+<style>
+    .calendar-day { padding: 10px; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+    .calendar-day:hover { background: var(--secondary); }
+    .calendar-day.active { background: var(--primary); color: white; }
+
+    .time-slot { padding: 10px 20px; border: 1px solid var(--primary); border-radius: 10px; cursor: pointer; }
+    .time-slot.active { background: var(--secondary); color: var(--primary); font-weight: bold; }
+
+    .btn-book { width: 100%; margin-top: 30px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; }
+
+    .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 15px 30px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: slideIn 0.3s; }
+    @@keyframes slideIn { from { top: 0; opacity: 0; } to { top: 80px; opacity: 1; } }
+</style>

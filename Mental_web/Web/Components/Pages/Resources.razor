@@ -1,0 +1,31 @@
+@page "/resources"
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <h1 style="color: var(--primary); margin: 0;">Resources Hub</h1>
+    <input type="text" placeholder="Search resources..." style="padding: 10px 20px; border-radius: 20px; border: 1px solid var(--text-secondary); width: 300px;" />
+</div>
+
+<div class="stat-grid">
+    @for (int i = 0; i < 6; i++)
+    {
+        var title = titles[i];
+        var desc = descs[i];
+        <div class="card">
+            <h3 style="color: var(--primary); margin-top: 0;">@title</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 15px 0;">@desc</p>
+            <button style="background: var(--secondary); color: var(--primary); border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer;">Read Article</button>
+        </div>
+    }
+</div>
+
+@code {
+    private string[] titles = { "Understanding Anxiety", "Depression Recovery", "Mindfulness 101", "Sleep Hygiene", "Managing Stress", "Building Resilience" };
+    private string[] descs = { 
+        "Learn about the symptoms and how to manage daily anxiety effectively.", 
+        "Steps and resources to help guide you through recovery and support.",
+        "Basic exercises to stay present and calm in your busy student life.",
+        "How to improve your sleep quality for better mental health.",
+        "Practical tips for balancing academic pressure and well-being.",
+        "Strengthening your mental toughness and emotional balance."
+    };
+}

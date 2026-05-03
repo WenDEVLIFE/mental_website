@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Mental_web_Web/1.0.0": {
+        "runtime": {
+          "Mental_web_Web.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Mental_web_Web/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

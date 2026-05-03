@@ -1,0 +1,33 @@
+@inherits LayoutComponentBase
+
+<div class="app-container">
+    <div class="sidebar">
+        <div class="logo-area">SMHASS</div>
+        <div class="nav-links">
+            <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+                <span>Dashboard</span>
+            </NavLink>
+            <NavLink class="nav-item" href="assessment">
+                <span>Assessment</span>
+            </NavLink>
+            <NavLink class="nav-item" href="appointments">
+                <span>Appointments</span>
+            </NavLink>
+            <NavLink class="nav-item" href="resources">
+                <span>Resources</span>
+            </NavLink>
+        </div>
+        <div class="nav-item" style="color: gold; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
+            🔒 Admin Mode (Prototype)
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h2 style="margin: 0; font-size: 1.2rem; color: var(--text-primary);">Mental Health Appointment Support System</h2>
+        </div>
+        <div class="view-container">
+            @Body
+        </div>
+    </div>
+</div>

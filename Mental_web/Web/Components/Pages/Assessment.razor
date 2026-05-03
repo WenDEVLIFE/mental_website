@@ -1,0 +1,94 @@
+@page "/assessment"
+
+<h1 style="color: var(--primary); margin-bottom: 30px;">Self-Assessment</h1>
+
+@if (!isFinished)
+{
+    <div class="card" style="padding: 40px;">
+        <div style="height: 8px; background: var(--secondary); border-radius: 4px; margin-bottom: 40px;">
+            <div style="height: 100%; background: var(--primary); border-radius: 4px; width: @( (currentIndex + 1) * 100 / questions.Count )%;"></div>
+        </div>
+
+        <h2 style="margin-bottom: 40px;">@(currentIndex + 1). @questions[currentIndex]</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            @foreach (var option in options)
+            {
+                <div class="option-card @(selectedOption == option ? "selected" : "")" @onclick="() => selectedOption = option">
+                    @option
+                </div>
+            }
+        </div>
+
+        <button class="btn-next @(selectedOption == null ? "disabled" : "")" @onclick="NextQuestion" disabled="@(selectedOption == null)">
+            @(currentIndex == questions.Count - 1 ? "Finish Assessment" : "Next Question")
+        </button>
+    </div>
+}
+else
+{
+    <div class="card" style="text-align: center; padding: 50px;">
+        <h1 style="color: var(--primary);">Assessment Complete!</h1>
+        <div class="progress-circle" style="margin: 40px auto; width: 200px; height: 200px; border-width: 20px;">88%</div>
+        <p style="font-size: 1.2rem; margin-bottom: 40px;">You're doing great! Keep tracking your progress and stay mindful.</p>
+        <button class="btn-next" @onclick="() => isFinished = false" style="width: 250px;">Retake Assessment</button>
+    </div>
+}
+
+@code {
+    private int currentIndex = 0;
+    private bool isFinished = false;
+    private string? selectedOption;
+
+    private List<string> questions = new() {
+        "How often have you been bothered by feeling down, depressed, or hopeless?",
+        "How often have you had little interest or pleasure in doing things?",
+        "How often have you had trouble falling or staying asleep?",
+        "How often have you felt tired or had little energy?"
+    };
+
+    private string[] options = { "Not at all", "Several days", "More than half the days", "Nearly every day" };
+
+    private void NextQuestion()
+    {
+        if (currentIndex < questions.Count - 1)
+        {
+            currentIndex++;
+            selectedOption = null;
+        }
+        else
+        {
+            isFinished = true;
+        }
+    }
+}
+
+<style>
+    .option-card {
+        padding: 20px;
+        border: 2px solid var(--secondary);
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: white;
+    }
+    .option-card:hover { background: var(--secondary); }
+    .option-card.selected {
+        background: var(--secondary);
+        border-color: var(--primary);
+        font-weight: bold;
+        color: var(--primary);
+    }
+    .btn-next {
+        margin-top: 40px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        float: right;
+    }
+    .btn-next.disabled { background: gray; cursor: not-allowed; }
+</style>
