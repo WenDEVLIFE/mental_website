@@ -24,15 +24,16 @@ namespace Mental_web
             
             // Wire up navigation
             this.btnDashboard.Click += (s, e) => {
-                if (_isAdminMode) ShowView(new Views.Admin.AdminDashboardControl(), "Admin Dashboard");
+                if (_currentUser?.Role == "Admin") ShowView(new Views.Admin.AdminDashboardControl(), "Admin Dashboard");
+                else if (_currentUser?.Role == "Counselor") ShowView(new Views.Admin.AppointmentQueueControl(), "My Appointments");
                 else ShowView(new Views.DashboardControl(), "Dashboard");
             };
             this.btnAssessment.Click += (s, e) => {
-                if (_isAdminMode) ShowView(new Views.Admin.StudentManagementControl(), "Student Management");
+                if (_currentUser?.Role == "Admin") ShowView(new Views.Admin.StudentManagementControl(), "Student Management");
                 else ShowView(new Views.AssessmentControl(), "Assessment");
             };
             this.btnAppointment.Click += (s, e) => {
-                if (_isAdminMode) ShowView(new Views.Admin.AppointmentQueueControl(), "Appointment Queue");
+                if (_currentUser?.Role == "Admin" || _currentUser?.Role == "Counselor") ShowView(new Views.Admin.AppointmentQueueControl(), "Appointment Queue");
                 else ShowView(new Views.AppointmentControl(), "Appointments");
             };
             this.btnResources.Click += (s, e) => ShowView(new Views.ResourcesControl(), "Resources");
@@ -48,9 +49,6 @@ namespace Mental_web
             // Optimization
             UIHelper.SetDoubleBuffered(this);
             UIHelper.SetDoubleBuffered(contentPanel);
-
-            // Initial view
-            ShowView(new Views.DashboardControl(), "Dashboard");
         }
 
         private UserSession _currentUser = null!;
@@ -58,23 +56,33 @@ namespace Mental_web
         public void SetUserSession(UserSession session)
         {
             _currentUser = session;
+            lblTitle.Text = $"Welcome, {session.Username} ({session.Role})";
             
             if (session.Role == "Admin")
             {
-                _isAdminMode = true;
                 btnAdminMode.Visible = false;
                 btnDashboard.Text = "   Admin Dashboard";
                 btnAssessment.Text = "   Manage Students";
+                btnAssessment.Visible = true;
                 btnAppointment.Text = "   Appointment Queue";
                 btnResources.Visible = false;
                 ShowView(new Views.Admin.AdminDashboardControl(), "Admin Dashboard");
             }
+            else if (session.Role == "Counselor")
+            {
+                btnAdminMode.Visible = false;
+                btnDashboard.Text = "   My Appointments";
+                btnAssessment.Visible = false;
+                btnAppointment.Text = "   Schedule settings";
+                btnResources.Visible = false;
+                ShowView(new Views.Admin.AppointmentQueueControl(), "My Appointments");
+            }
             else
             {
-                _isAdminMode = false;
                 btnAdminMode.Visible = false;
                 btnDashboard.Text = "   Dashboard";
                 btnAssessment.Text = "   Assessment";
+                btnAssessment.Visible = true;
                 btnAppointment.Text = "   Appointments";
                 btnResources.Visible = true;
                 ShowView(new Views.DashboardControl(), "Dashboard");

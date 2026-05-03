@@ -169,6 +169,51 @@ public class Notification
     public Student Student { get; set; } = null!;
 }
 
+public class AssessmentQuestion
+{
+    [Key]
+    [Column("question_id")]
+    public int QuestionId { get; set; }
+    [Column("question_text")]
+    public string QuestionText { get; set; } = null!;
+    [Column("question_type")]
+    public string? QuestionType { get; set; }
+    [Column("created_at")]
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class Resource
+{
+    [Key]
+    [Column("resource_id")]
+    public int ResourceId { get; set; }
+    [Column("title")]
+    public string Title { get; set; } = null!;
+    [Column("content_type")]
+    public string? ContentType { get; set; }
+    [Column("content_body")]
+    public string ContentBody { get; set; } = null!;
+    [Column("author_id")]
+    public int? AuthorId { get; set; }
+    [Column("created_at")]
+    public DateTime? CreatedAt { get; set; }
+}
+
+public class ActivityLog
+{
+    [Key]
+    [Column("log_id")]
+    public int LogId { get; set; }
+    [Column("user_id")]
+    public int UserId { get; set; }
+    [Column("role")]
+    public string Role { get; set; } = null!;
+    [Column("action")]
+    public string Action { get; set; } = null!;
+    [Column("timestamp")]
+    public DateTime? Timestamp { get; set; }
+}
+
 public class MentalHealthContext : DbContext
 {
     public MentalHealthContext(DbContextOptions<MentalHealthContext> options) : base(options)
@@ -187,6 +232,9 @@ public class MentalHealthContext : DbContext
     public DbSet<SelfAssessment> SelfAssessments { get; set; } = null!;
     public DbSet<Feedback> Feedbacks { get; set; } = null!;
     public DbSet<Notification> Notifications { get; set; } = null!;
+    public DbSet<AssessmentQuestion> AssessmentQuestions { get; set; } = null!;
+    public DbSet<Resource> Resources { get; set; } = null!;
+    public DbSet<ActivityLog> ActivityLogs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -198,5 +246,8 @@ public class MentalHealthContext : DbContext
         modelBuilder.Entity<SelfAssessment>().ToTable("self_assessments");
         modelBuilder.Entity<Feedback>().ToTable("feedbacks");
         modelBuilder.Entity<Notification>().ToTable("notifications");
+        modelBuilder.Entity<AssessmentQuestion>().ToTable("assessment_questions");
+        modelBuilder.Entity<Resource>().ToTable("resources");
+        modelBuilder.Entity<ActivityLog>().ToTable("activity_logs");
     }
 }

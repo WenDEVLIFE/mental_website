@@ -134,6 +134,45 @@ CREATE TABLE `notifications` (
   CONSTRAINT `fk_notification_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ----------------------------
+-- Table structure for assessment_questions
+-- ----------------------------
+DROP TABLE IF EXISTS `assessment_questions`;
+CREATE TABLE `assessment_questions` (
+  `question_id` int NOT NULL AUTO_INCREMENT,
+  `question_text` text NOT NULL,
+  `question_type` varchar(50) DEFAULT 'Scale', -- Scale, MultipleChoice, Text
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
+-- Table structure for resources
+-- ----------------------------
+DROP TABLE IF EXISTS `resources`;
+CREATE TABLE `resources` (
+  `resource_id` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `content_type` varchar(50) DEFAULT 'Article', -- Article, Guide, Video
+  `content_body` text NOT NULL,
+  `author_id` int DEFAULT NULL, -- Admin who created it
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`resource_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------
+-- Table structure for activity_logs
+-- ----------------------------
+DROP TABLE IF EXISTS `activity_logs`;
+CREATE TABLE `activity_logs` (
+  `log_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `role` varchar(50) NOT NULL,
+  `action` varchar(255) NOT NULL,
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`log_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ----------------------------
