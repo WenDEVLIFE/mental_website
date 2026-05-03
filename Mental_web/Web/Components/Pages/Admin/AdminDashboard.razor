@@ -139,7 +139,7 @@
                 DbContext.Notifications.Add(new Mental_web.Data.Notification {
                     StudentId = s.StudentId,
                     Message = NewAnnouncement,
-                    IsRead = false
+                    Status = "Unread"
                 });
             }
             DbContext.ActivityLogs.Add(new Mental_web.Data.ActivityLog { UserId = 1, Role = "Admin", Action = $"Sent global announcement: {NewAnnouncement}" });

@@ -1,0 +1,85 @@
+@page "/profile"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+
+<PageTitle>Personal Profile</PageTitle>
+
+<h1 style="color: var(--primary); margin-bottom: 30px;">Personal Account Information</h1>
+
+@if (Student == null)
+{
+    <p>Loading profile...</p>
+}
+else
+{
+    <div class="card p-4">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" @bind="Student.FirstName" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" @bind="Student.LastName" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" value="@Student.Email" disabled />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Course</label>
+                <input type="text" class="form-control" @bind="Student.Course" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Year Level</label>
+                <select class="form-select" @bind="Student.YearLevel">
+                    <option value="1">1st Year</option>
+                    <option value="2">2nd Year</option>
+                    <option value="3">3rd Year</option>
+                    <option value="4">4th Year</option>
+                    <option value="5">5th Year</option>
+                </select>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <div class="alert alert-success mt-3">@Message</div>
+        }
+
+        <button class="btn-primary mt-4" @onclick="UpdateProfile">Save Changes</button>
+    </div>
+}
+
+<style>
+    .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+</style>
+
+@code {
+    private Mental_web.Data.Student? Student;
+    private string Message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdStr, out int userId))
+        {
+            Student = await DbContext.Students.FindAsync(userId);
+        }
+    }
+
+    private async Task UpdateProfile()
+    {
+        if (Student != null)
+        {
+            DbContext.Students.Update(Student);
+            await DbContext.SaveChangesAsync();
+            Message = "Profile updated successfully!";
+        }
+    }
+}

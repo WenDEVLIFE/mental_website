@@ -1,95 +1,220 @@
 @page "/assessment"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+
+<PageTitle>Self-Assessment</PageTitle>
 
 <h1 style="color: var(--primary); margin-bottom: 30px;">Self-Assessment</h1>
 
-@if (!isFinished)
+@if (ShowResult)
 {
-    <div class="card" style="padding: 40px;">
-        <div style="height: 8px; background: var(--secondary); border-radius: 4px; margin-bottom: 40px;">
-            <div style="height: 100%; background: var(--primary); border-radius: 4px; width: @( (currentIndex + 1) * 100 / questions.Count )%;"></div>
+    <div class="card result-card">
+        <div class="result-header">
+            <div class="score-circle">@Score%</div>
+            <div>
+                <h2>Your Assessment Result</h2>
+                <p class="status-badge @StatusClass">@AssessmentResult</p>
+            </div>
         </div>
-
-        <h2 style="margin-bottom: 40px;">@(currentIndex + 1). @questions[currentIndex]</h2>
-
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            @foreach (var option in options)
-            {
-                <div class="option-card @(selectedOption == option ? "selected" : "")" @onclick="() => selectedOption = option">
-                    @option
-                </div>
-            }
+        <hr />
+        <div class="feedback-section">
+            <h4>Feedback & Recommendations:</h4>
+            <p>@FeedbackMessage</p>
         </div>
-
-        <button class="btn-next @(selectedOption == null ? "disabled" : "")" @onclick="NextQuestion" disabled="@(selectedOption == null)">
-            @(currentIndex == questions.Count - 1 ? "Finish Assessment" : "Next Question")
-        </button>
+        <button class="btn-primary mt-4" @onclick="ResetAssessment">Take Again</button>
+    </div>
+}
+else if (Questions == null || !Questions.Any())
+{
+    <div class="card p-5 text-center">
+        <p>No assessment questions available at the moment. Please check back later.</p>
     </div>
 }
 else
 {
-    <div class="card" style="text-align: center; padding: 50px;">
-        <h1 style="color: var(--primary);">Assessment Complete!</h1>
-        <div class="progress-circle" style="margin: 40px auto; width: 200px; height: 200px; border-width: 20px;">88%</div>
-        <p style="font-size: 1.2rem; margin-bottom: 40px;">You're doing great! Keep tracking your progress and stay mindful.</p>
-        <button class="btn-next" @onclick="() => isFinished = false" style="width: 250px;">Retake Assessment</button>
+    <div class="card p-4">
+        <div class="progress-container mb-4">
+            <div class="progress-bar" style="width: @(Progress)%"></div>
+        </div>
+        
+        <h4>Question @(CurrentIndex + 1) of @Questions.Count</h4>
+        <h2 class="mb-4">@Questions[CurrentIndex].QuestionText</h2>
+
+        <div class="options-grid">
+            <button class="option-btn" @onclick="() => SelectOption(4)">Very Often</button>
+            <button class="option-btn" @onclick="() => SelectOption(3)">Often</button>
+            <button class="option-btn" @onclick="() => SelectOption(2)">Sometimes</button>
+            <button class="option-btn" @onclick="() => SelectOption(1)">Rarely</button>
+            <button class="option-btn" @onclick="() => SelectOption(0)">Never</button>
+        </div>
     </div>
 }
 
+<style>
+    .card {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    .options-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    .option-btn {
+        padding: 15px 25px;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        background: white;
+        text-align: left;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .option-btn:hover {
+        border-color: var(--primary);
+        background: #f0f7f0;
+    }
+    .progress-container {
+        height: 10px;
+        background: #eee;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    .progress-bar {
+        height: 100%;
+        background: var(--primary);
+        transition: width 0.3s;
+    }
+    .result-card {
+        border-top: 5px solid var(--primary);
+    }
+    .score-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-right: 20px;
+    }
+    .result-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .status-good { background: #e8f5e9; color: #2e7d32; }
+    .status-warning { background: #fff3e0; color: #ef6c00; }
+    .status-danger { background: #ffebee; color: #c62828; }
+</style>
+
 @code {
-    private int currentIndex = 0;
-    private bool isFinished = false;
-    private string? selectedOption;
+    private List<Mental_web.Data.AssessmentQuestion>? Questions;
+    private int CurrentIndex = 0;
+    private List<int> Answers = new();
+    private bool ShowResult = false;
+    private int Score = 0;
+    private string AssessmentResult = "";
+    private string FeedbackMessage = "";
+    private string StatusClass = "";
+    private double Progress => Questions != null ? (double)(CurrentIndex) / Questions.Count * 100 : 0;
 
-    private List<string> questions = new() {
-        "How often have you been bothered by feeling down, depressed, or hopeless?",
-        "How often have you had little interest or pleasure in doing things?",
-        "How often have you had trouble falling or staying asleep?",
-        "How often have you felt tired or had little energy?"
-    };
-
-    private string[] options = { "Not at all", "Several days", "More than half the days", "Nearly every day" };
-
-    private void NextQuestion()
+    protected override async Task OnInitializedAsync()
     {
-        if (currentIndex < questions.Count - 1)
+        Questions = await DbContext.AssessmentQuestions.ToListAsync();
+        if (Questions == null || !Questions.Any())
         {
-            currentIndex++;
-            selectedOption = null;
+            // Seed default questions if none exist
+            var defaults = new List<Mental_web.Data.AssessmentQuestion>
+            {
+                new() { QuestionText = "How often have you felt overwhelmed by your studies lately?" },
+                new() { QuestionText = "How often do you find it difficult to concentrate on tasks?" },
+                new() { QuestionText = "How often have you felt lonely or isolated?" },
+                new() { QuestionText = "How often do you feel anxious about your future?" },
+                new() { QuestionText = "How often have you experienced trouble sleeping?" }
+            };
+            DbContext.AssessmentQuestions.AddRange(defaults);
+            await DbContext.SaveChangesAsync();
+            Questions = await DbContext.AssessmentQuestions.ToListAsync();
+        }
+    }
+
+    private async Task SelectOption(int value)
+    {
+        Answers.Add(value);
+        if (CurrentIndex < Questions!.Count - 1)
+        {
+            CurrentIndex++;
         }
         else
         {
-            isFinished = true;
+            await CalculateResults();
         }
     }
-}
 
-<style>
-    .option-card {
-        padding: 20px;
-        border: 2px solid var(--secondary);
-        border-radius: 15px;
-        cursor: pointer;
-        transition: all 0.3s;
-        background: white;
+    private async Task CalculateResults()
+    {
+        int maxPossible = Questions!.Count * 4;
+        int totalScore = Answers.Sum();
+        Score = (int)((double)totalScore / maxPossible * 100);
+
+        if (Score < 30)
+        {
+            AssessmentResult = "Excellent Standing";
+            FeedbackMessage = "You seem to be handling things very well! Continue practicing good self-care and staying connected with friends.";
+            StatusClass = "status-good";
+        }
+        else if (Score < 60)
+        {
+            AssessmentResult = "Moderate Stress";
+            FeedbackMessage = "You are experiencing some stress. Consider trying relaxation techniques and ensuring you get enough sleep.";
+            StatusClass = "status-warning";
+        }
+        else
+        {
+            AssessmentResult = "High Support Needed";
+            FeedbackMessage = "Your results suggest you are going through a difficult time. We highly recommend booking an appointment with a counselor for support.";
+            StatusClass = "status-danger";
+        }
+
+        // Save to DB
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdStr, out int userId))
+        {
+            var assessment = new Mental_web.Data.SelfAssessment
+            {
+                StudentId = userId,
+                DateTaken = DateTime.Now,
+                Score = Score,
+                Result = AssessmentResult
+            };
+            DbContext.SelfAssessments.Add(assessment);
+            await DbContext.SaveChangesAsync();
+        }
+
+        ShowResult = true;
     }
-    .option-card:hover { background: var(--secondary); }
-    .option-card.selected {
-        background: var(--secondary);
-        border-color: var(--primary);
-        font-weight: bold;
-        color: var(--primary);
+
+    private void ResetAssessment()
+    {
+        CurrentIndex = 0;
+        Answers.Clear();
+        ShowResult = false;
     }
-    .btn-next {
-        margin-top: 40px;
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 15px 40px;
-        border-radius: 15px;
-        font-weight: bold;
-        cursor: pointer;
-        float: right;
-    }
-    .btn-next.disabled { background: gray; cursor: not-allowed; }
-</style>
+}

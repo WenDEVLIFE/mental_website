@@ -1,0 +1,84 @@
+@page "/progress"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+
+<PageTitle>Personal Progress</PageTitle>
+
+<h1 style="color: var(--primary); margin-bottom: 30px;">Personal Progress Tracking</h1>
+
+@if (Assessments == null)
+{
+    <p>Loading progress...</p>
+}
+else if (!Assessments.Any())
+{
+    <div class="card p-5 text-center">
+        <h3>No assessments taken yet.</h3>
+        <p>Take your first self-assessment to start tracking your progress.</p>
+        <a href="/assessment" class="btn btn-primary mt-3">Take Assessment</a>
+    </div>
+}
+else
+{
+    <div class="card p-4 mb-4">
+        <h3>Mental Health Score History</h3>
+        <div style="height: 300px; display: flex; align-items: flex-end; gap: 15px; padding: 20px; border-bottom: 2px solid #eee;">
+            @foreach (var ass in Assessments.OrderBy(a => a.DateTaken).TakeLast(7))
+            {
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <div style="width: 100%; background: var(--primary); height: @(ass.Score ?? 0)%; border-radius: 5px 5px 0 0; min-height: 5px;"></div>
+                    <span style="font-size: 0.7rem; color: #666; transform: rotate(-45deg); white-space: nowrap;">@ass.DateTaken?.ToShortDateString()</span>
+                    <span style="font-weight: bold; font-size: 0.8rem;">@(ass.Score)%</span>
+                </div>
+            }
+        </div>
+        <p class="text-muted mt-5" style="font-size: 0.9rem;">* Higher scores indicate higher levels of reported stress/symptoms during assessment.</p>
+    </div>
+
+    <div class="card p-4">
+        <h3>Previous Results</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date Taken</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ass in Assessments.OrderByDescending(a => a.DateTaken))
+                {
+                    <tr>
+                        <td>@(ass.DateTaken?.ToString("MMM dd, yyyy HH:mm") ?? "N/A")</td>
+                        <td>@ass.Score%</td>
+                        <td>@ass.Result</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<style>
+    .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+</style>
+
+@code {
+    private List<Mental_web.Data.SelfAssessment>? Assessments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdStr, out int userId))
+        {
+            Assessments = await DbContext.SelfAssessments
+                .Where(a => a.StudentId == userId)
+                .OrderByDescending(a => a.DateTaken)
+                .ToListAsync();
+        }
+    }
+}

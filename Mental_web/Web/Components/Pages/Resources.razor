@@ -1,32 +1,140 @@
 @page "/resources"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Resources Hub</PageTitle>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <h1 style="color: var(--primary); margin: 0;">Resources Hub</h1>
-    <input type="text" placeholder="Search resources..." style="padding: 10px 20px; border-radius: 20px; border: 1px solid var(--text-secondary); width: 300px;" />
 </div>
 
 <div class="stat-grid">
-    @for (int i = 0; i < 6; i++)
+    @if (ResourceList == null)
     {
-        var title = titles[i];
-        var desc = descs[i];
-        <div class="card">
-            <h3 style="color: var(--primary); margin-top: 0;">@title</h3>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 15px 0;">@desc</p>
-            <button style="background: var(--secondary); color: var(--primary); border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer;">Read Article</button>
+        <p>Loading resources...</p>
+    }
+    else if (!ResourceList.Any())
+    {
+        <div class="card" style="grid-column: span 3; text-align: center; padding: 40px;">
+            <h3 style="color: var(--text-secondary);">No resources available yet.</h3>
+            <p>Check back later for tips, articles, and guides.</p>
         </div>
+    }
+    else
+    {
+        @foreach (var res in ResourceList)
+        {
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <span class="badge">@res.ContentType</span>
+                </div>
+                <h3 style="color: var(--primary); margin: 0 0 10px 0;">@res.Title</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                    @res.ContentBody
+                </p>
+                <button class="btn-primary" style="width: 100%;" @onclick="() => SelectResource(res)">Read More</button>
+            </div>
+        }
     }
 </div>
 
+@if (SelectedResource != null)
+{
+    <div class="modal-backdrop" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                <span class="badge">@SelectedResource.ContentType</span>
+                <button class="close-btn" @onclick="CloseModal">&times;</button>
+            </div>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">@SelectedResource.Title</h2>
+            <div style="color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap;">
+                @SelectedResource.ContentBody
+            </div>
+            <button class="btn-primary mt-4" style="width: 100%;" @onclick="CloseModal">Close</button>
+        </div>
+    </div>
+}
+
+<style>
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+    .card {
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .badge {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 5px 12px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    .modal-content {
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+    }
+</style>
+
 @code {
-    private string[] titles = { "Understanding Anxiety", "Depression Recovery", "Mindfulness 101", "Sleep Hygiene", "Managing Stress", "Building Resilience" };
-    private string[] descs = { 
-        "Learn about the symptoms and how to manage daily anxiety effectively.", 
-        "Steps and resources to help guide you through recovery and support.",
-        "Basic exercises to stay present and calm in your busy student life.",
-        "How to improve your sleep quality for better mental health.",
-        "Practical tips for balancing academic pressure and well-being.",
-        "Strengthening your mental toughness and emotional balance."
-    };
+    private List<Mental_web.Data.Resource>? ResourceList;
+    private Mental_web.Data.Resource? SelectedResource;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ResourceList = await DbContext.Resources.OrderByDescending(r => r.CreatedAt).ToListAsync();
+    }
+
+    private void SelectResource(Mental_web.Data.Resource res)
+    {
+        SelectedResource = res;
+    }
+
+    private void CloseModal()
+    {
+        SelectedResource = null;
+    }
 }
