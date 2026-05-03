@@ -20,10 +20,25 @@ namespace Mental_web
             this.btnExit.Click += (s, e) => Application.Exit();
             
             // Wire up navigation
-            this.btnDashboard.Click += (s, e) => ShowView("Dashboard");
-            this.btnAssessment.Click += (s, e) => ShowView("Assessment");
-            this.btnAppointment.Click += (s, e) => ShowView("Appointments");
-            this.btnResources.Click += (s, e) => ShowView("Resources");
+            this.btnDashboard.Click += (s, e) => ShowView(new Views.DashboardControl(), "Dashboard");
+            this.btnAssessment.Click += (s, e) => ShowView(null, "Assessment");
+            this.btnAppointment.Click += (s, e) => ShowView(null, "Appointments");
+            this.btnResources.Click += (s, e) => ShowView(null, "Resources");
+
+            // Hover effects
+            SetupHover(btnDashboard);
+            SetupHover(btnAssessment);
+            SetupHover(btnAppointment);
+            SetupHover(btnResources);
+
+            // Initial view
+            ShowView(new Views.DashboardControl(), "Dashboard");
+        }
+
+        private void SetupHover(Button btn)
+        {
+            btn.MouseEnter += (s, e) => btn.BackColor = Color.FromArgb(60, 110, 54); // Lighter green
+            btn.MouseLeave += (s, e) => btn.BackColor = AppTheme.PrimaryColor;
         }
 
         private void TitleBar_MouseDown(object sender, MouseEventArgs e)
@@ -35,19 +50,27 @@ namespace Mental_web
             }
         }
 
-        private void ShowView(string title)
+        private void ShowView(UserControl? view, string title)
         {
             lblTitle.Text = title;
             contentPanel.Controls.Clear();
             
-            var label = new Label {
-                Text = title + " View Placeholder",
-                Font = AppTheme.HeaderFont,
-                ForeColor = AppTheme.PrimaryColor,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-            contentPanel.Controls.Add(label);
+            if (view != null)
+            {
+                view.Dock = DockStyle.Fill;
+                contentPanel.Controls.Add(view);
+            }
+            else
+            {
+                var label = new Label {
+                    Text = title + " View Placeholder",
+                    Font = AppTheme.HeaderFont,
+                    ForeColor = AppTheme.PrimaryColor,
+                    Dock = DockStyle.Fill,
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+                contentPanel.Controls.Add(label);
+            }
         }
     }
 }
