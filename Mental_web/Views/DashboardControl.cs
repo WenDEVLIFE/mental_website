@@ -27,13 +27,22 @@ namespace Mental_web.Views
             var dbContext = Program.ServiceProvider.GetRequiredService<MentalHealthContext>();
             
             var lblWelcome = new Label {
-                Text = $"Hello, {_session.Username}!",
-                Font = AppTheme.HeaderFont,
+                Text = $"Welcome back, {_session.Username}!",
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
                 ForeColor = AppTheme.PrimaryColor,
                 Location = new Point(30, 30),
                 AutoSize = true
             };
             this.Controls.Add(lblWelcome);
+
+            var lblSub = new Label {
+                Text = "Your mental health overview for today.",
+                Font = new Font("Segoe UI", 10),
+                ForeColor = Color.Gray,
+                Location = new Point(32, 65),
+                AutoSize = true
+            };
+            this.Controls.Add(lblSub);
 
             int score = 0;
             string status = "Take an assessment!";
@@ -50,25 +59,37 @@ namespace Mental_web.Views
 
             // Circular Progress Area
             var progressPanel = new Panel {
-                Size = new Size(200, 250),
-                Location = new Point(30, 90),
+                Size = new Size(240, 280),
+                Location = new Point(30, 110),
                 BackColor = Color.White
             };
             var progressBar = new Components.CircularProgressBar {
-                Location = new Point(40, 40),
-                Size = new Size(120, 120),
-                Value = score
+                Location = new Point(50, 40),
+                Size = new Size(140, 140),
+                Value = score,
+                InnerColor = Color.White,
+                ProgressColor = AppTheme.PrimaryColor
             };
-            var lblProgress = new Label {
-                Text = "Mental Health Score\n" + status,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                Location = new Point(0, 180),
-                Width = 200,
+            var lblScoreTitle = new Label {
+                Text = "Mental Health Score",
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Location = new Point(0, 195),
+                Width = 240,
+                TextAlign = ContentAlignment.TopCenter
+            };
+            var lblStatus = new Label {
+                Text = status,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.Gray,
+                Location = new Point(0, 220),
+                Width = 240,
                 TextAlign = ContentAlignment.TopCenter
             };
             progressPanel.Controls.Add(progressBar);
-            progressPanel.Controls.Add(lblProgress);
+            progressPanel.Controls.Add(lblScoreTitle);
+            progressPanel.Controls.Add(lblStatus);
             this.Controls.Add(progressPanel);
+            UIHelper.MakeRounded(progressPanel, 24);
 
             var nextApp = dbContext.Appointments
                 .Include(a => a.Counselor)
@@ -80,20 +101,20 @@ namespace Mental_web.Views
             string cDate = nextApp != null ? $"{nextApp.Date.ToShortDateString()}, {nextApp.Time}" : "appointments.";
 
             // Stats Cards
-            CreateStatCard("Next Appointment", cName, cDate, new Point(250, 90));
+            CreateStatCard("Next Appointment", cName, cDate, new Point(290, 110), Color.FromArgb(232, 245, 233), Color.FromArgb(46, 125, 50));
             
             int resourceCount = dbContext.Resources.Count();
-            CreateStatCard("Resources Available", $"{resourceCount} Articles", "Keep learning!", new Point(500, 90));
+            CreateStatCard("Resources Available", $"{resourceCount} Articles", "Mental health tips", new Point(550, 110), Color.FromArgb(227, 242, 253), Color.FromArgb(25, 118, 210));
 
-            // Recent Tips Section
-            var lblTips = new Label {
-                Text = "System Notifications",
-                Font = AppTheme.HeaderFont,
+            // System Announcements
+            var lblAnn = new Label {
+                Text = "System Announcements",
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
                 ForeColor = AppTheme.PrimaryColor,
-                Location = new Point(30, 360),
+                Location = new Point(30, 410),
                 AutoSize = true
             };
-            this.Controls.Add(lblTips);
+            this.Controls.Add(lblAnn);
 
             var notes = dbContext.Notifications
                 .Where(n => n.StudentId == _session.UserId)
@@ -101,72 +122,101 @@ namespace Mental_web.Views
                 .Take(2)
                 .ToList();
 
+            int yPos = 450;
             if (notes.Count > 0)
             {
-                CreateTipCard("Notification", notes[0].Message, new Point(30, 410));
+                foreach (var note in notes)
+                {
+                    CreateNotificationItem(note.Message, note.CreatedAt?.ToString("MMM dd, h:mm tt") ?? "", new Point(30, yPos));
+                    yPos += 80;
+                }
             }
             else
             {
-                CreateTipCard("Welcome", "No new notifications.", new Point(30, 410));
-            }
-
-            if (notes.Count > 1)
-            {
-                CreateTipCard("Notification", notes[1].Message, new Point(390, 410));
+                CreateNotificationItem("No new notifications.", "", new Point(30, yPos));
             }
         }
 
-        private void CreateTipCard(string title, string desc, Point loc)
+        private void CreateStatCard(string title, string mainVal, string subVal, Point loc, Color backColor, Color foreColor)
         {
             Panel card = new Panel {
-                Size = new Size(340, 100),
+                Size = new Size(240, 280),
                 Location = loc,
                 BackColor = Color.White
             };
-            var lblT = new Label { Text = title, Font = new Font("Segoe UI", 11, FontStyle.Bold), Location = new Point(15, 15), AutoSize = true, ForeColor = AppTheme.PrimaryColor };
-            var lblD = new Label { Text = desc, Font = new Font("Segoe UI", 9), Location = new Point(15, 45), Size = new Size(310, 40) };
+            
+            var iconBox = new Panel {
+                Size = new Size(50, 50),
+                Location = new Point(20, 20),
+                BackColor = backColor
+            };
+            card.Controls.Add(iconBox);
+            UIHelper.MakeRounded(iconBox, 14);
+
+            var lblT = new Label { 
+                Text = title, 
+                Font = new Font("Segoe UI", 10, FontStyle.Bold), 
+                ForeColor = AppTheme.PrimaryColor, 
+                Location = new Point(20, 85), 
+                AutoSize = true 
+            };
+            var lblM = new Label { 
+                Text = mainVal, 
+                Font = new Font("Segoe UI", 18, FontStyle.Bold), 
+                Location = new Point(20, 120), 
+                Width = 200,
+                Height = 80
+            };
+            var lblS = new Label { 
+                Text = subVal, 
+                Font = new Font("Segoe UI", 9), 
+                ForeColor = Color.Gray, 
+                Location = new Point(20, 210), 
+                AutoSize = true 
+            };
+            
             card.Controls.Add(lblT);
-            card.Controls.Add(lblD);
+            card.Controls.Add(lblM);
+            card.Controls.Add(lblS);
             this.Controls.Add(card);
-            UIHelper.MakeRounded(card, 20);
+            UIHelper.MakeRounded(card, 24);
         }
 
-        private void CreateStatCard(string title, string mainVal, string subVal, Point loc)
+        private void CreateNotificationItem(string msg, string date, Point loc)
         {
-            Panel card = new Panel {
-                Size = new Size(230, 250),
+            Panel item = new Panel {
+                Size = new Size(760, 65),
                 Location = loc,
-                BackColor = Color.White,
+                BackColor = Color.White
             };
             
-            Label lblTitle = new Label {
-                Text = title,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                ForeColor = AppTheme.PrimaryColor,
-                Location = new Point(15, 15),
-                AutoSize = true
+            var indicator = new Panel {
+                Size = new Size(5, 65),
+                Location = new Point(0, 0),
+                BackColor = AppTheme.PrimaryColor
             };
-            
-            Label lblMain = new Label {
-                Text = mainVal,
-                Font = new Font("Segoe UI", 20, FontStyle.Bold),
-                Location = new Point(15, 45),
-                AutoSize = true
-            };
-            
-            Label lblSub = new Label {
-                Text = subVal,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.Gray,
-                Location = new Point(15, 100),
-                AutoSize = true
-            };
+            item.Controls.Add(indicator);
 
-            card.Controls.Add(lblTitle);
-            card.Controls.Add(lblMain);
-            card.Controls.Add(lblSub);
-            this.Controls.Add(card);
-            UIHelper.MakeRounded(card, 25);
+            var lblM = new Label {
+                Text = msg,
+                Font = new Font("Segoe UI", 10),
+                Location = new Point(20, 10),
+                Width = 600,
+                Height = 45
+            };
+            var lblD = new Label {
+                Text = date,
+                Font = new Font("Segoe UI", 8),
+                ForeColor = Color.Silver,
+                Location = new Point(630, 10),
+                Width = 120,
+                TextAlign = ContentAlignment.TopRight
+            };
+            
+            item.Controls.Add(lblM);
+            item.Controls.Add(lblD);
+            this.Controls.Add(item);
+            UIHelper.MakeRounded(item, 15);
         }
 
         private void InitializeComponent()

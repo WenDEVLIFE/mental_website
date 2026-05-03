@@ -5,97 +5,98 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Security.Claims
 
-<h1 style="color: var(--primary); margin-bottom: 30px;">Hello, @UserName!</h1>
+<div class="dashboard-header">
+    <h1 style="color: var(--primary); margin: 0; font-size: 2.2rem; font-weight: 700;">Welcome back, @GreetingName!</h1>
+    <p style="color: var(--text-secondary); margin-top: 5px;">Here is your mental health overview for today.</p>
+</div>
 
 <div class="stat-grid">
-    <div class="card" style="text-align: center;">
-        <div class="progress-circle">@(LastAssessmentScore)%</div>
-        <h3 style="margin: 0;">Mental Health Score</h3>
-        <p style="color: var(--text-secondary);">@AssessmentStatus</p>
+    <div class="card score-card">
+        <div class="progress-container">
+            <div class="progress-circle" style="background: conic-gradient(var(--primary) @(LastAssessmentScore)%, #f0f0f0 0);">
+                <div class="inner-circle">@(LastAssessmentScore)%</div>
+            </div>
+        </div>
+        <h3 style="margin: 15px 0 5px; font-weight: 700;">Mental Health Score</h3>
+        <p class="status-badge">@AssessmentStatus</p>
     </div>
     
-    <div class="card">
-        <h3 style="color: var(--primary);">Next Appointment</h3>
+    <div class="card appointment-card">
+        <div class="card-icon" style="background: #e8f5e9; color: #2e7d32;">
+            <span class="bi bi-calendar-check"></span>
+        </div>
+        <h3 style="margin: 15px 0 5px; color: var(--primary); font-weight: 700;">Next Appointment</h3>
         @if (NextAppointment != null)
         {
-            <h2 style="margin: 15px 0;">@NextAppointment.Counselor.Name</h2>
-            <p style="color: var(--text-secondary);">@NextAppointment.Date.ToShortDateString(), @NextAppointment.Time</p>
+            <h2 style="margin: 10px 0; font-weight: 600;">@NextAppointment.Counselor.Name</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                <span class="bi bi-clock" style="margin-right: 5px;"></span>
+                @NextAppointment.Date.ToShortDateString(), @NextAppointment.Time
+            </p>
         }
         else
         {
-            <p style="margin: 15px 0; color: var(--text-secondary);">No upcoming appointments.</p>
+            <p style="margin: 20px 0; color: var(--text-secondary); font-style: italic;">No upcoming sessions.</p>
         }
-        <a href="/appointments" class="btn btn-primary" style="width: 100%; margin-top: 10px;">View Details</a>
+        <a href="/appointments" class="btn-action" style="background: #2e7d32; color: white; margin-top: auto;">View Details</a>
     </div>
 
-    <div class="card">
-        <h3 style="color: var(--primary);">Resources Available</h3>
-        <h2 style="margin: 15px 0;">@ResourceCount Articles</h2>
-        <p style="color: var(--text-secondary);">Keep learning!</p>
-        <a href="/resources" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Browse More</a>
+    <div class="card resource-card">
+        <div class="card-icon" style="background: #e3f2fd; color: #1976d2;">
+            <span class="bi bi-book"></span>
+        </div>
+        <h3 style="margin: 15px 0 5px; color: var(--primary); font-weight: 700;">Resources Hub</h3>
+        <h2 style="margin: 10px 0; font-weight: 600;">@ResourceCount Available</h2>
+        <p style="color: var(--text-secondary); font-size: 0.95rem;">Mental health tips & guides.</p>
+        <a href="/resources" class="btn-action" style="background: #1976d2; color: white; margin-top: auto;">Browse More</a>
     </div>
 </div>
 
-<h2 style="color: var(--primary); margin: 40px 0 20px;">System Announcements</h2>
-<div class="stat-grid">
+<h2 style="color: var(--primary); margin: 50px 0 25px; font-weight: 700; display: flex; align-items: center;">
+    <span class="bi bi-megaphone" style="margin-right: 15px;"></span>
+    System Announcements
+</h2>
+
+<div class="notifications-list">
     @if (Notifications != null && Notifications.Any())
     {
         @foreach (var note in Notifications)
         {
-            <div class="card">
-                <h4 style="margin: 0 0 10px; color: var(--primary);">Notification</h4>
-                <p style="font-size: 0.9rem;">@note.Message</p>
-                <small class="text-muted">@note.CreatedAt?.ToString("g")</small>
+            <div class="notification-item">
+                <div class="note-content">
+                    <h4 style="margin: 0 0 5px; font-weight: 600; color: var(--primary);">Announcement</h4>
+                    <p style="margin: 0; color: var(--text-primary);">@note.Message</p>
+                </div>
+                <div class="note-date">@note.CreatedAt?.ToString("MMM dd, h:mm tt")</div>
             </div>
         }
     }
     else
     {
-        <p>No new notifications at this time.</p>
+        <div class="empty-state">
+            <p>No new notifications at this time.</p>
+        </div>
     }
 </div>
 
 <style>
-    .btn-primary {
-        background-color: var(--primary);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 10px;
-        cursor: pointer;
-        font-weight: bold;
-        display: inline-block;
-        text-align: center;
-        text-decoration: none;
-    }
-    .stat-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-    }
-    .card {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .progress-circle {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: conic-gradient(var(--primary) 85%, #eee 0);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        font-weight: bold;
-        margin: 0 auto 15px;
-        color: var(--primary);
-    }
+    .dashboard-header { margin-bottom: 40px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+    .card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); display: flex; flex-direction: column; position: relative; overflow: hidden; border: 1px solid #f0f0f0; }
+    .card-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 5px; }
+    .progress-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; }
+    .inner-circle { width: 95px; height: 95px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+    .status-badge { background: #f5f5f5; padding: 6px 15px; border-radius: 20px; display: inline-block; font-size: 0.85rem; font-weight: 600; color: #666; margin: 0 auto; }
+    .btn-action { text-decoration: none; padding: 14px; border-radius: 16px; text-align: center; font-weight: 700; font-size: 0.95rem; transition: transform 0.2s, opacity 0.2s; }
+    .btn-action:hover { transform: translateY(-2px); opacity: 0.9; }
+    .notifications-list { display: flex; flex-direction: column; gap: 15px; }
+    .notification-item { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
+    .note-date { font-size: 0.8rem; color: #999; font-weight: 500; }
+    .empty-state { text-align: center; padding: 40px; color: #999; font-style: italic; }
 </style>
 
 @code {
-    private string UserName = "User";
+    private string GreetingName = "Student";
     private int LastAssessmentScore = 0;
     private string AssessmentStatus = "Take an assessment!";
     private Mental_web.Data.Appointment? NextAppointment;
@@ -108,7 +109,6 @@
         var user = authState.User;
         if (user.Identity?.IsAuthenticated == true)
         {
-            UserName = user.Identity.Name ?? "User";
             var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             
             if (int.TryParse(userIdStr, out int userId))
@@ -117,6 +117,12 @@
 
                 if (role == "Student")
                 {
+                    var student = await DbContext.Students.FindAsync(userId);
+                    if (student != null)
+                    {
+                        GreetingName = student.FirstName;
+                    }
+
                     var lastAss = await DbContext.SelfAssessments
                         .Where(s => s.StudentId == userId)
                         .OrderByDescending(s => s.DateTaken)
