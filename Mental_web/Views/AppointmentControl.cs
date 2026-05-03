@@ -7,9 +7,9 @@ namespace Mental_web.Views
 {
     public partial class AppointmentControl : UserControl
     {
-        private FlowLayoutPanel _timeSlotPanel;
-        private TableLayoutPanel _calendarGrid;
-        private Label _lblMonthYear;
+        private FlowLayoutPanel _timeSlotPanel = null!;
+        private TableLayoutPanel _calendarGrid = null!;
+        private Label _lblMonthYear = null!;
         private DateTime _currentDate;
 
         public AppointmentControl()

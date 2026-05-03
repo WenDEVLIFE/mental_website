@@ -18,8 +18,11 @@ namespace Mental_web.UI
         public static void SetDoubleBuffered(Control control)
         {
             if (SystemInformation.TerminalServerSession) return;
-            System.Reflection.PropertyInfo property = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            property?.SetValue(control, true, null);
+            System.Reflection.PropertyInfo? property = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (property != null)
+            {
+                property.SetValue(control, true, null);
+            }
         }
     }
 }

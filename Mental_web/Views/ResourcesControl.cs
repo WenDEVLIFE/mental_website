@@ -7,8 +7,8 @@ namespace Mental_web.Views
 {
     public partial class ResourcesControl : UserControl
     {
-        private FlowLayoutPanel _resourcePanel;
-        private TextBox _txtSearch;
+        private FlowLayoutPanel _resourcePanel = null!;
+        private TextBox _txtSearch = null!;
 
         public ResourcesControl()
         {

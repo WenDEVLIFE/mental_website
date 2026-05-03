@@ -18,10 +18,10 @@ namespace Mental_web.Views
         };
         private List<int> _answers = new List<int>();
 
-        private Label _lblQuestion;
-        private Panel _optionsPanel;
-        private Button _btnNext;
-        private Panel _progressPanel;
+        private Label _lblQuestion = null!;
+        private Panel _optionsPanel = null!;
+        private Button _btnNext = null!;
+        private Panel _progressPanel = null!;
 
         public AssessmentControl()
         {

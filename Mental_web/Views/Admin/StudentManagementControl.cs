@@ -8,7 +8,7 @@ namespace Mental_web.Views.Admin
 {
     public partial class StudentManagementControl : UserControl
     {
-        private DataGridView _grid;
+        private DataGridView _grid = null!;
 
         public StudentManagementControl()
         {

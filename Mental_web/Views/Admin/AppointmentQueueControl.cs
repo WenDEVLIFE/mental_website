@@ -7,7 +7,7 @@ namespace Mental_web.Views.Admin
 {
     public partial class AppointmentQueueControl : UserControl
     {
-        private FlowLayoutPanel _queuePanel;
+        private FlowLayoutPanel _queuePanel = null!;
 
         public AppointmentQueueControl()
         {
