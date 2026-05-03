@@ -13,7 +13,9 @@ namespace Mental_web.Components
         private Color _backColor = Color.FromArgb(232, 245, 233);
         private int _strokeWidth = 10;
 
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Visible)]
         public int Value { get => _value; set { _value = value; Invalidate(); } }
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Visible)]
         public Color ProgressColor { get => _progressColor; set { _progressColor = value; Invalidate(); } }
 
         public CircularProgressBar()

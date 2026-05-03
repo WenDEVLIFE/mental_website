@@ -21,7 +21,7 @@ namespace Mental_web
             
             // Wire up navigation
             this.btnDashboard.Click += (s, e) => ShowView(new Views.DashboardControl(), "Dashboard");
-            this.btnAssessment.Click += (s, e) => ShowView(null, "Assessment");
+            this.btnAssessment.Click += (s, e) => ShowView(new Views.AssessmentControl(), "Assessment");
             this.btnAppointment.Click += (s, e) => ShowView(null, "Appointments");
             this.btnResources.Click += (s, e) => ShowView(null, "Resources");
 

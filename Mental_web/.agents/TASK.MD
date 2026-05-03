@@ -20,10 +20,10 @@ This task list focuses on developing the C# WinForms prototype for the Student M
 - [x] **Dashboard View:** **(DONE)**
     - [x] Circular Progress Bars or Custom Painted Charts for mental health stats. **(DONE)**
     - [x] Card-style Panels for "Next Appointment" and "Recent Tips". **(DONE)**
-- [ ] **Self-Assessment View:**
-    - [ ] Logic to cycle through questions within a single `UserControl`.
-    - [ ] Visual feedback for radio buttons/checkboxes (Custom styled).
-    - [ ] Result summary page with graphical feedback.
+- [x] **Self-Assessment View:** **(DONE)**
+    - [x] Logic to cycle through questions within a single `UserControl`. **(DONE)**
+    - [x] Visual feedback for radio buttons/checkboxes (Custom styled). **(DONE)**
+    - [x] Result summary page with graphical feedback. **(DONE)**
 - [ ] **Appointment Scheduling View:**
     - [ ] Custom Calendar control or a grid-based DatePicker.
     - [ ] FlowLayoutPanel for selecting time slots.
