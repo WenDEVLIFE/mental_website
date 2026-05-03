@@ -22,6 +22,7 @@ namespace Mental_web
             this.btnAssessment = new System.Windows.Forms.Button();
             this.btnAppointment = new System.Windows.Forms.Button();
             this.btnResources = new System.Windows.Forms.Button();
+            this.btnAdminMode = new System.Windows.Forms.Button();
             this.titleBar = new System.Windows.Forms.Panel();
             this.lblTitle = new System.Windows.Forms.Label();
             this.btnExit = new System.Windows.Forms.Button();
@@ -34,6 +35,7 @@ namespace Mental_web
             // sidePanel
             // 
             this.sidePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(90)))), ((int)(((byte)(39)))));
+            this.sidePanel.Controls.Add(this.btnAdminMode);
             this.sidePanel.Controls.Add(this.btnResources);
             this.sidePanel.Controls.Add(this.btnAppointment);
             this.sidePanel.Controls.Add(this.btnAssessment);
@@ -127,6 +129,16 @@ namespace Mental_web
             this.btnResources.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnResources.UseVisualStyleBackColor = true;
             // 
+            // btnAdminMode
+            this.btnAdminMode.Text = "🔒 Admin Mode";
+            this.btnAdminMode.FlatStyle = FlatStyle.Flat;
+            this.btnAdminMode.FlatAppearance.BorderSize = 0;
+            this.btnAdminMode.ForeColor = Color.Gold;
+            this.btnAdminMode.Font = Mental_web.UI.AppTheme.ButtonFont;
+            this.btnAdminMode.Dock = DockStyle.Bottom;
+            this.btnAdminMode.Height = 50;
+            this.btnAdminMode.Cursor = Cursors.Hand;
+
             // titleBar
             // 
             this.titleBar.BackColor = System.Drawing.Color.White;
@@ -195,6 +207,7 @@ namespace Mental_web
         private System.Windows.Forms.Button btnAssessment;
         private System.Windows.Forms.Button btnAppointment;
         private System.Windows.Forms.Button btnResources;
+        private System.Windows.Forms.Button btnAdminMode;
         private System.Windows.Forms.Panel titleBar;
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Button btnExit;

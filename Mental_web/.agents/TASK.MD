@@ -24,18 +24,18 @@ This task list focuses on developing the C# WinForms prototype for the Student M
     - [x] Logic to cycle through questions within a single `UserControl`. **(DONE)**
     - [x] Visual feedback for radio buttons/checkboxes (Custom styled). **(DONE)**
     - [x] Result summary page with graphical feedback. **(DONE)**
-- [ ] **Appointment Scheduling View:**
-    - [ ] Custom Calendar control or a grid-based DatePicker.
-    - [ ] FlowLayoutPanel for selecting time slots.
-    - [ ] Success/Confirmation Dialog (Custom Form).
-- [ ] **Resources Hub:**
-    - [ ] Scrollable area with image-based resource cards.
-    - [ ] Search TextBox with placeholder text.
+- [x] **Appointment Scheduling View:** **(DONE)**
+    - [x] Custom Calendar control or a grid-based DatePicker. **(DONE)**
+    - [x] FlowLayoutPanel for selecting time slots. **(DONE)**
+    - [x] Success/Confirmation Dialog (Custom Form). **(DONE)**
+- [x] **Resources Hub:** **(DONE)**
+    - [x] Scrollable area with image-based resource cards. **(DONE)**
+    - [x] Search TextBox with placeholder text. **(DONE)**
 
-## Phase 4: Admin View (Prototype)
-- [ ] Admin Dashboard (Different sidebar options).
-- [ ] DataGridView for Student Management (Styled with modern headers).
-- [ ] Appointment Queue management (Approve/Decline buttons).
+- [x] **Phase 4: Admin View (Prototype)** **(DONE)**
+    - [x] Admin Dashboard (Different sidebar options). **(DONE)**
+    - [x] DataGridView for Student Management (Styled with modern headers). **(DONE)**
+    - [x] Appointment Queue management (Approve/Decline buttons). **(DONE)**
 
 ## Phase 5: UI/UX & Polish
 - [ ] Use GDI+ for rounded corners on panels and buttons.

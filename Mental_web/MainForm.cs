@@ -13,6 +13,8 @@ namespace Mental_web
         [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
 
+        private bool _isAdminMode = false;
+
         public MainForm()
         {
             InitializeComponent();
@@ -20,19 +22,54 @@ namespace Mental_web
             this.btnExit.Click += (s, e) => Application.Exit();
             
             // Wire up navigation
-            this.btnDashboard.Click += (s, e) => ShowView(new Views.DashboardControl(), "Dashboard");
-            this.btnAssessment.Click += (s, e) => ShowView(new Views.AssessmentControl(), "Assessment");
-            this.btnAppointment.Click += (s, e) => ShowView(null, "Appointments");
-            this.btnResources.Click += (s, e) => ShowView(null, "Resources");
+            this.btnDashboard.Click += (s, e) => {
+                if (_isAdminMode) ShowView(new Views.Admin.AdminDashboardControl(), "Admin Dashboard");
+                else ShowView(new Views.DashboardControl(), "Dashboard");
+            };
+            this.btnAssessment.Click += (s, e) => {
+                if (_isAdminMode) ShowView(new Views.Admin.StudentManagementControl(), "Student Management");
+                else ShowView(new Views.AssessmentControl(), "Assessment");
+            };
+            this.btnAppointment.Click += (s, e) => {
+                if (_isAdminMode) ShowView(new Views.Admin.AppointmentQueueControl(), "Appointment Queue");
+                else ShowView(new Views.AppointmentControl(), "Appointments");
+            };
+            this.btnResources.Click += (s, e) => ShowView(new Views.ResourcesControl(), "Resources");
+
+            this.btnAdminMode.Click += (s, e) => ToggleAdminMode();
 
             // Hover effects
             SetupHover(btnDashboard);
             SetupHover(btnAssessment);
             SetupHover(btnAppointment);
             SetupHover(btnResources);
+            SetupHover(btnAdminMode);
 
             // Initial view
             ShowView(new Views.DashboardControl(), "Dashboard");
+        }
+
+        private void ToggleAdminMode()
+        {
+            _isAdminMode = !_isAdminMode;
+            if (_isAdminMode)
+            {
+                btnAdminMode.Text = "👤 User Mode";
+                btnDashboard.Text = "   Admin Dashboard";
+                btnAssessment.Text = "   Manage Students";
+                btnAppointment.Text = "   Appointment Queue";
+                btnResources.Visible = false;
+                ShowView(new Views.Admin.AdminDashboardControl(), "Admin Dashboard");
+            }
+            else
+            {
+                btnAdminMode.Text = "🔒 Admin Mode";
+                btnDashboard.Text = "   Dashboard";
+                btnAssessment.Text = "   Assessment";
+                btnAppointment.Text = "   Appointments";
+                btnResources.Visible = true;
+                ShowView(new Views.DashboardControl(), "Dashboard");
+            }
         }
 
         private void SetupHover(Button btn)
