@@ -239,11 +239,14 @@ namespace Mental_web.Views
             };
             UIHelper.MakeRounded(btnDone, 12);
             btnDone.Click += (s, e) => {
-                // Return to Dashboard via MainForm if possible
-                this.Parent.Controls.Clear();
-                var dash = new DashboardControl(_session);
-                dash.Dock = DockStyle.Fill;
-                this.Parent.Controls.Add(dash);
+                var parent = this.Parent;
+                if (parent != null)
+                {
+                    parent.Controls.Clear();
+                    var dash = new DashboardControl(_session);
+                    dash.Dock = DockStyle.Fill;
+                    parent.Controls.Add(dash);
+                }
             };
             this.Controls.Add(btnDone);
         }
