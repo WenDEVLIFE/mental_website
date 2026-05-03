@@ -45,6 +45,10 @@ namespace Mental_web
             SetupHover(btnResources);
             SetupHover(btnAdminMode);
 
+            // Optimization
+            UIHelper.SetDoubleBuffered(this);
+            UIHelper.SetDoubleBuffered(contentPanel);
+
             // Initial view
             ShowView(new Views.DashboardControl(), "Dashboard");
         }
@@ -52,6 +56,9 @@ namespace Mental_web
         private void ToggleAdminMode()
         {
             _isAdminMode = !_isAdminMode;
+            string msg = _isAdminMode ? "Switched to Admin Mode" : "Switched to User Mode";
+            Components.ToastNotification.Show(msg, this);
+
             if (_isAdminMode)
             {
                 btnAdminMode.Text = "👤 User Mode";

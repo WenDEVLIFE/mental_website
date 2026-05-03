@@ -78,6 +78,7 @@ namespace Mental_web.Views
             card.Controls.Add(lblT);
             card.Controls.Add(lblD);
             this.Controls.Add(card);
+            UIHelper.MakeRounded(card, 20);
         }
 
         private void CreateStatCard(string title, string mainVal, string subVal, Point loc)
@@ -115,6 +116,7 @@ namespace Mental_web.Views
             card.Controls.Add(lblMain);
             card.Controls.Add(lblSub);
             this.Controls.Add(card);
+            UIHelper.MakeRounded(card, 25);
         }
 
         private void InitializeComponent()

@@ -37,11 +37,11 @@ This task list focuses on developing the C# WinForms prototype for the Student M
     - [x] DataGridView for Student Management (Styled with modern headers). **(DONE)**
     - [x] Appointment Queue management (Approve/Decline buttons). **(DONE)**
 
-## Phase 5: UI/UX & Polish
-- [ ] Use GDI+ for rounded corners on panels and buttons.
-- [ ] Implement a custom "Hover" animation (e.g., changing background color or shifting position).
-- [ ] Add a custom "Toast" notification system for alerts.
-- [ ] Optimize control rendering (DoubleBuffered = true) to prevent flickering.
+## Phase 5: UI/UX & Polish **(DONE)**
+- [x] Use GDI+ for rounded corners on panels and buttons. **(DONE)**
+- [x] Implement a custom "Hover" animation (e.g., changing background color or shifting position). **(DONE)**
+- [x] Add a custom "Toast" notification system for alerts. **(DONE)**
+- [x] Optimize control rendering (DoubleBuffered = true) to prevent flickering. **(DONE)**
 
 ## Phase 6: Final Review
 - [ ] Verify smooth navigation between all UserControls.
