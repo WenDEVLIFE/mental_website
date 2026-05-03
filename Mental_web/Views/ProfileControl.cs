@@ -12,7 +12,7 @@ namespace Mental_web.Views
     public class ProfileControl : UserControl
     {
         private UserSession _session;
-        private TextBox txtFirst, txtLast, txtContact, txtCourse;
+        private TextBox txtFirst, txtLast, txtContact, txtCourse, txtPassword;
         private NumericUpDown numYear;
 
         public ProfileControl(UserSession session)
@@ -38,9 +38,10 @@ namespace Mental_web.Views
 
             var panel = new Panel {
                 Location = new Point(30, 90),
-                Size = new Size(500, 450),
+                Size = new Size(500, 520),
                 BackColor = Color.White,
-                Padding = new Padding(30)
+                Padding = new Padding(30),
+                AutoScroll = true
             };
             UIHelper.MakeRounded(panel, 25);
 
@@ -49,15 +50,22 @@ namespace Mental_web.Views
             CreateField(panel, "Last Name:", ref txtLast, ref y);
             CreateField(panel, "Contact Number:", ref txtContact, ref y);
             CreateField(panel, "Course:", ref txtCourse, ref y);
-
+            
             var lblYear = new Label { Text = "Year Level:", Location = new Point(30, y), AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold) };
             numYear = new NumericUpDown { Location = new Point(30, y + 25), Width = 440, Minimum = 1, Maximum = 5, Font = new Font("Segoe UI", 11) };
             panel.Controls.Add(lblYear);
             panel.Controls.Add(numYear);
+            y += 75;
+
+            var lblPass = new Label { Text = "New Password (Leave blank to keep current):", Location = new Point(30, y), AutoSize = true, Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = Color.FromArgb(100, 100, 100) };
+            txtPassword = new TextBox { Location = new Point(30, y + 25), Width = 440, Font = new Font("Segoe UI", 11), PasswordChar = '*', BorderStyle = BorderStyle.FixedSingle };
+            panel.Controls.Add(lblPass);
+            panel.Controls.Add(txtPassword);
+            y += 85;
 
             var btnSave = new Button {
                 Text = "Save Profile Changes",
-                Location = new Point(30, y + 80),
+                Location = new Point(30, y),
                 Width = 440,
                 Height = 45,
                 BackColor = AppTheme.PrimaryColor,
@@ -117,8 +125,14 @@ namespace Mental_web.Views
                         student.Course = txtCourse.Text;
                         student.YearLevel = (int)numYear.Value;
 
+                        if (!string.IsNullOrWhiteSpace(txtPassword.Text))
+                        {
+                            student.PasswordHash = AuthService.HashPassword(txtPassword.Text);
+                        }
+
                         db.SaveChanges();
                         MessageBox.Show("Profile updated successfully!", "Success");
+                        txtPassword.Clear();
                     }
                 }
             }

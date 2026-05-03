@@ -71,7 +71,7 @@ namespace Mental_web.Views.Admin
             
             if (!string.IsNullOrWhiteSpace(txtPass.Text))
             {
-                Student.PasswordHash = txtPass.Text; // In a real app, hash this
+                Student.PasswordHash = AuthService.HashPassword(txtPass.Text);
             }
         }
     }
