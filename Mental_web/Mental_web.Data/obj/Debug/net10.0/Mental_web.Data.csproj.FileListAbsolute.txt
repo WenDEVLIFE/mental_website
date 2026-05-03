@@ -1,0 +1,13 @@
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/bin/Debug/net10.0/Mental_web.Data.deps.json
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/bin/Debug/net10.0/Mental_web.Data.dll
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/bin/Debug/net10.0/Mental_web.Data.pdb
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.csproj.AssemblyReference.cache
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.GeneratedMSBuildEditorConfig.editorconfig
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.AssemblyInfoInputs.cache
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.AssemblyInfo.cs
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.csproj.CoreCompileInputs.cache
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.sourcelink.json
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.dll
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/refint/Mental_web.Data.dll
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/Mental_web.Data.pdb
+/Users/frouen/web/mental_website/Mental_web/Mental_web.Data/obj/Debug/net10.0/ref/Mental_web.Data.dll

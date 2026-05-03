@@ -13,5 +13,6 @@ namespace Mental_web.UI
         
         public static Font HeaderFont = new Font("Segoe UI", 18, FontStyle.Bold);
         public static Font ButtonFont = new Font("Segoe UI", 10, FontStyle.Bold);
+        public static Font BodyFont = new Font("Segoe UI", 10, FontStyle.Regular);
     }
 }

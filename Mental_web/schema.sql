@@ -45,6 +45,7 @@ CREATE TABLE `counselors` (
   `specialization` varchar(150) DEFAULT NULL,
   `email` varchar(150) NOT NULL,
   `contact_number` varchar(20) DEFAULT NULL,
+  `password_hash` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`counselor_id`),
   UNIQUE KEY `idx_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

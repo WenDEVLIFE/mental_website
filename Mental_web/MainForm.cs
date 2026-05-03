@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Mental_web.UI;
+using Mental_web.Data;
 
 namespace Mental_web
 {
@@ -36,8 +37,7 @@ namespace Mental_web
             };
             this.btnResources.Click += (s, e) => ShowView(new Views.ResourcesControl(), "Resources");
 
-            this.btnAdminMode.Click += (s, e) => ToggleAdminMode();
-
+            // Admin mode toggle removed, using login instead
             // Hover effects
             SetupHover(btnDashboard);
             SetupHover(btnAssessment);
@@ -53,15 +53,16 @@ namespace Mental_web
             ShowView(new Views.DashboardControl(), "Dashboard");
         }
 
-        private void ToggleAdminMode()
-        {
-            _isAdminMode = !_isAdminMode;
-            string msg = _isAdminMode ? "Switched to Admin Mode" : "Switched to User Mode";
-            Components.ToastNotification.Show(msg, this);
+        private UserSession _currentUser = null!;
 
-            if (_isAdminMode)
+        public void SetUserSession(UserSession session)
+        {
+            _currentUser = session;
+            
+            if (session.Role == "Admin")
             {
-                btnAdminMode.Text = "👤 User Mode";
+                _isAdminMode = true;
+                btnAdminMode.Visible = false;
                 btnDashboard.Text = "   Admin Dashboard";
                 btnAssessment.Text = "   Manage Students";
                 btnAppointment.Text = "   Appointment Queue";
@@ -70,7 +71,8 @@ namespace Mental_web
             }
             else
             {
-                btnAdminMode.Text = "🔒 Admin Mode";
+                _isAdminMode = false;
+                btnAdminMode.Visible = false;
                 btnDashboard.Text = "   Dashboard";
                 btnAssessment.Text = "   Assessment";
                 btnAppointment.Text = "   Appointments";

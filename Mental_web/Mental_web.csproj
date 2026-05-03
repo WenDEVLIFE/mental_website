@@ -12,5 +12,16 @@
     <Compile Remove="Web\**" />
     <EmbeddedResource Remove="Web\**" />
     <None Remove="Web\**" />
+    <Compile Remove="Mental_web.Data\**" />
+    <EmbeddedResource Remove="Mental_web.Data\**" />
+    <None Remove="Mental_web.Data\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="Mental_web.Data\Mental_web.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
   </ItemGroup>
 </Project>

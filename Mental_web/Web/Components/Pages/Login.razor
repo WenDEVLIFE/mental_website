@@ -1,0 +1,33 @@
+@page "/login"
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+<PageTitle>Login</PageTitle>
+
+<div class="login-container">
+    <div class="card shadow" style="max-width: 400px; margin: 100px auto; padding: 20px;">
+        <h3 class="text-center mb-4">Mental Health System Login</h3>
+        
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger">@ErrorMessage</div>
+        }
+
+        <form method="post" action="/api/login">
+            <AntiforgeryToken />
+            <div class="mb-3">
+                <label for="username" class="form-label">Email / Username</label>
+                <input type="text" class="form-control" id="username" name="username" required />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorMessage { get; set; }
+}
