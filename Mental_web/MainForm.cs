@@ -37,6 +37,8 @@ namespace Mental_web
                 else ShowView(new Views.AppointmentControl(), "Appointments");
             };
             this.btnResources.Click += (s, e) => ShowView(new Views.ResourcesControl(), "Resources");
+            this.btnProgress.Click += (s, e) => ShowView(new Views.ProgressControl(_currentUser), "Progress Tracking");
+            this.btnProfile.Click += (s, e) => ShowView(new Views.ProfileControl(_currentUser), "My Profile");
 
             // Repurpose Admin mode button to Logout
             btnAdminMode.Text = "   Logout";
@@ -50,6 +52,8 @@ namespace Mental_web
             SetupHover(btnAssessment);
             SetupHover(btnAppointment);
             SetupHover(btnResources);
+            SetupHover(btnProgress);
+            SetupHover(btnProfile);
             SetupHover(btnAdminMode);
 
             // Optimization
@@ -93,6 +97,8 @@ namespace Mental_web
                 btnAssessment.Visible = true;
                 btnAppointment.Text = "   Appointment Queue";
                 btnResources.Visible = false;
+                btnProgress.Visible = false;
+                btnProfile.Visible = false;
                 ShowView(new Views.Admin.AdminDashboardControl(), "Admin Dashboard");
             }
             else if (session.Role == "Counselor")
@@ -101,6 +107,8 @@ namespace Mental_web
                 btnAssessment.Visible = false;
                 btnAppointment.Text = "   Schedule settings";
                 btnResources.Visible = false;
+                btnProgress.Visible = false;
+                btnProfile.Visible = false;
                 ShowView(new Views.Admin.AppointmentQueueControl(), "My Appointments");
             }
             else
@@ -110,6 +118,8 @@ namespace Mental_web
                 btnAssessment.Visible = true;
                 btnAppointment.Text = "   Appointments";
                 btnResources.Visible = true;
+                btnProgress.Visible = true;
+                btnProfile.Visible = true;
                 ShowView(new Views.DashboardControl(_currentUser), "Dashboard");
             }
         }

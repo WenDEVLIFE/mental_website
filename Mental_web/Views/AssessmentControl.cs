@@ -1,20 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
+using Microsoft.Extensions.DependencyInjection;
 using Mental_web.UI;
+using Mental_web.Data;
 
 namespace Mental_web.Views
 {
     public partial class AssessmentControl : UserControl
     {
+        private UserSession _session;
+        private MentalHealthContext _db;
         private int _currentIndex = 0;
         private List<string> _questions = new List<string> {
             "How often have you been bothered by feeling down, depressed, or hopeless?",
             "How often have you had little interest or pleasure in doing things?",
             "How often have you had trouble falling or staying asleep, or sleeping too much?",
             "How often have you felt tired or had little energy?",
-            "How often have you had a poor appetite or been overeating?"
+            "How often have you had a poor appetite or been overeating?",
+            "How often have you felt bad about yourself - or that you are a failure?",
+            "How often have you had trouble concentrating on things?"
         };
         private List<int> _answers = new List<int>();
 
@@ -23,30 +30,44 @@ namespace Mental_web.Views
         private Button _btnNext = null!;
         private Panel _progressPanel = null!;
 
-        public AssessmentControl()
+        public AssessmentControl(UserSession session)
         {
+            _session = session;
+            _db = Program.ServiceProvider.GetRequiredService<MentalHealthContext>();
             InitializeComponent();
             SetupUI();
             ShowQuestion();
         }
+
+        // Add a parameterless constructor for designer/placeholders
+        public AssessmentControl() : this(new UserSession()) { }
 
         private void SetupUI()
         {
             this.BackColor = AppTheme.BackgroundColor;
             this.Dock = DockStyle.Fill;
 
+            var lblTitle = new Label {
+                Text = "Self-Assessment",
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
+                ForeColor = AppTheme.PrimaryColor,
+                Location = new Point(50, 20),
+                AutoSize = true
+            };
+            this.Controls.Add(lblTitle);
+
             _lblQuestion = new Label {
                 Text = "Question text goes here...",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = AppTheme.PrimaryColor,
-                Location = new Point(50, 80),
+                Font = new Font("Segoe UI", 14, FontStyle.Bold),
+                ForeColor = Color.FromArgb(64, 64, 64),
+                Location = new Point(50, 100),
                 Size = new Size(700, 100),
                 TextAlign = ContentAlignment.TopLeft
             };
             this.Controls.Add(_lblQuestion);
 
             _optionsPanel = new Panel {
-                Location = new Point(50, 180),
+                Location = new Point(50, 200),
                 Size = new Size(700, 300)
             };
             this.Controls.Add(_optionsPanel);
@@ -54,20 +75,27 @@ namespace Mental_web.Views
             _btnNext = new Button {
                 Text = "Next Question",
                 Size = new Size(200, 50),
-                Location = new Point(550, 480),
+                Location = new Point(550, 500),
                 BackColor = AppTheme.PrimaryColor,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Font = AppTheme.ButtonFont
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Cursor = Cursors.Hand
             };
             _btnNext.FlatAppearance.BorderSize = 0;
-            _btnNext.Click += BtnNext_Click;
+            _btnNext.Click += (s, e) => {
+                if (_btnNext.Tag != null) {
+                    _answers.Add((int)_btnNext.Tag);
+                    _currentIndex++;
+                    ShowQuestion();
+                }
+            };
             this.Controls.Add(_btnNext);
 
             _progressPanel = new Panel {
-                Location = new Point(50, 50),
-                Size = new Size(700, 10),
-                BackColor = AppTheme.SecondaryColor
+                Location = new Point(50, 70),
+                Size = new Size(700, 8),
+                BackColor = Color.FromArgb(230, 230, 230)
             };
             this.Controls.Add(_progressPanel);
         }
@@ -82,44 +110,46 @@ namespace Mental_web.Views
                 string[] options = { "Not at all", "Several days", "More than half the days", "Nearly every day" };
                 for (int i = 0; i < options.Length; i++)
                 {
-                    CreateOptionButton(options[i], i, 0 + (i * 60));
+                    CreateOptionButton(options[i], i, i * 65);
                 }
 
                 // Update Progress Bar
-                var progressBar = new Panel {
+                Panel progressBar = new Panel {
                     Width = (int)(((_currentIndex + 1) / (float)_questions.Count) * 700),
-                    Height = 10,
+                    Height = 8,
                     BackColor = AppTheme.PrimaryColor
                 };
                 _progressPanel.Controls.Clear();
                 _progressPanel.Controls.Add(progressBar);
                 
                 _btnNext.Enabled = false;
-                _btnNext.BackColor = Color.Gray;
+                _btnNext.BackColor = Color.LightGray;
             }
             else
             {
-                ShowResults();
+                SaveAndShowResults();
             }
         }
 
         private void CreateOptionButton(string text, int score, int top)
         {
             Panel pnl = new Panel {
-                Size = new Size(600, 50),
+                Size = new Size(650, 55),
                 Location = new Point(0, top),
                 BackColor = Color.White,
-                Cursor = Cursors.Hand,
-                Tag = score
+                Cursor = Cursors.Hand
             };
+            UIHelper.MakeRounded(pnl, 12);
+
             Label lbl = new Label {
                 Text = text,
                 Font = new Font("Segoe UI", 11),
-                Location = new Point(15, 15),
+                Location = new Point(20, 15),
                 AutoSize = true,
-                Enabled = false // Allow click to pass to panel
+                Enabled = false
             };
             pnl.Controls.Add(lbl);
+
             pnl.Click += (s, e) => {
                 foreach (Control c in _optionsPanel.Controls) c.BackColor = Color.White;
                 pnl.BackColor = AppTheme.SecondaryColor;
@@ -130,62 +160,74 @@ namespace Mental_web.Views
             _optionsPanel.Controls.Add(pnl);
         }
 
-        private void BtnNext_Click(object sender, EventArgs e)
+        private void SaveAndShowResults()
         {
-            _answers.Add((int)_btnNext.Tag);
-            _currentIndex++;
-            ShowQuestion();
-        }
+            int totalScore = _answers.Sum();
+            int maxScore = _questions.Count * 3;
+            int percentage = (int)((totalScore / (float)maxScore) * 100);
+            
+            string resultStatus = "Normal";
+            if (percentage > 70) resultStatus = "High Support Needed";
+            else if (percentage > 40) resultStatus = "Moderate Stress";
 
-        private void ShowResults()
-        {
+            // Save to DB
+            var assessment = new SelfAssessment {
+                StudentId = _session.UserId,
+                DateTaken = DateTime.Now,
+                Score = 100 - percentage, // Well-being score
+                Result = resultStatus
+            };
+            _db.SelfAssessments.Add(assessment);
+            _db.SaveChanges();
+
+            // UI
             this.Controls.Clear();
-            int totalScore = 0;
-            foreach (int s in _answers) totalScore += s;
-            int percentage = (int)((totalScore / (float)(_questions.Count * 3)) * 100);
-
             var lblFinish = new Label {
-                Text = "Assessment Complete!",
-                Font = AppTheme.HeaderFont,
+                Text = "Assessment Complete",
+                Font = new Font("Segoe UI", 22, FontStyle.Bold),
                 ForeColor = AppTheme.PrimaryColor,
-                Location = new Point(0, 50),
+                Location = new Point(0, 80),
                 Width = 800,
                 TextAlign = ContentAlignment.TopCenter
             };
             this.Controls.Add(lblFinish);
 
             var chart = new Components.CircularProgressBar {
-                Location = new Point(300, 150),
+                Location = new Point(300, 180),
                 Size = new Size(200, 200),
-                Value = 100 - percentage, // Reverse for "Well-being" score
-                ProgressColor = percentage > 50 ? Color.Orange : AppTheme.PrimaryColor
+                Value = 100 - percentage,
+                ProgressColor = percentage > 40 ? Color.FromArgb(230, 126, 34) : AppTheme.PrimaryColor,
+                InnerColor = Color.White
             };
             this.Controls.Add(chart);
 
             var lblResult = new Label {
-                Text = percentage > 50 ? "We recommend speaking with a counselor." : "You're doing great! Keep tracking your progress.",
-                Font = new Font("Segoe UI", 12),
-                Location = new Point(0, 380),
+                Text = $"Your Well-being Score: {100 - percentage}%\nStatus: {resultStatus}",
+                Font = new Font("Segoe UI", 14),
+                Location = new Point(0, 400),
                 Width = 800,
-                TextAlign = ContentAlignment.TopCenter
+                TextAlign = ContentAlignment.TopCenter,
+                ForeColor = Color.FromArgb(64, 64, 64)
             };
             this.Controls.Add(lblResult);
             
             var btnDone = new Button {
-                Text = "Back to Dashboard",
-                Size = new Size(200, 50),
-                Location = new Point(300, 450),
+                Text = "Return to Dashboard",
+                Size = new Size(250, 50),
+                Location = new Point(275, 480),
                 BackColor = AppTheme.PrimaryColor,
                 ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Cursor = Cursors.Hand
             };
+            UIHelper.MakeRounded(btnDone, 12);
             btnDone.Click += (s, e) => {
-                // This would normally go back via MainForm navigation
-                if (this.Parent != null)
-                {
-                    this.Parent.Controls.Clear();
-                    this.Parent.Controls.Add(new DashboardControl());
-                }
+                // Return to Dashboard via MainForm if possible
+                this.Parent.Controls.Clear();
+                var dash = new DashboardControl(_session);
+                dash.Dock = DockStyle.Fill;
+                this.Parent.Controls.Add(dash);
             };
             this.Controls.Add(btnDone);
         }
@@ -194,7 +236,7 @@ namespace Mental_web.Views
         {
             this.SuspendLayout();
             this.Name = "AssessmentControl";
-            this.Size = new System.Drawing.Size(800, 550);
+            this.Size = new System.Drawing.Size(800, 600);
             this.ResumeLayout(false);
         }
     }

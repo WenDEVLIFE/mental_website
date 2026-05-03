@@ -22,6 +22,8 @@ namespace Mental_web
             this.btnAssessment = new System.Windows.Forms.Button();
             this.btnAppointment = new System.Windows.Forms.Button();
             this.btnResources = new System.Windows.Forms.Button();
+            this.btnProgress = new System.Windows.Forms.Button();
+            this.btnProfile = new System.Windows.Forms.Button();
             this.btnAdminMode = new System.Windows.Forms.Button();
             this.titleBar = new System.Windows.Forms.Panel();
             this.lblTitle = new System.Windows.Forms.Label();
@@ -36,6 +38,8 @@ namespace Mental_web
             // 
             this.sidePanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(90)))), ((int)(((byte)(39)))));
             this.sidePanel.Controls.Add(this.btnAdminMode);
+            this.sidePanel.Controls.Add(this.btnProfile);
+            this.sidePanel.Controls.Add(this.btnProgress);
             this.sidePanel.Controls.Add(this.btnResources);
             this.sidePanel.Controls.Add(this.btnAppointment);
             this.sidePanel.Controls.Add(this.btnAssessment);
@@ -129,6 +133,36 @@ namespace Mental_web
             this.btnResources.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.btnResources.UseVisualStyleBackColor = true;
             // 
+            // btnProgress
+            // 
+            this.btnProgress.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnProgress.FlatAppearance.BorderSize = 0;
+            this.btnProgress.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnProgress.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnProgress.ForeColor = System.Drawing.Color.White;
+            this.btnProgress.Location = new System.Drawing.Point(0, 280);
+            this.btnProgress.Name = "btnProgress";
+            this.btnProgress.Size = new System.Drawing.Size(220, 50);
+            this.btnProgress.TabIndex = 5;
+            this.btnProgress.Text = "   Progress";
+            this.btnProgress.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnProgress.UseVisualStyleBackColor = true;
+            // 
+            // btnProfile
+            // 
+            this.btnProfile.Dock = System.Windows.Forms.DockStyle.Top;
+            this.btnProfile.FlatAppearance.BorderSize = 0;
+            this.btnProfile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnProfile.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnProfile.ForeColor = System.Drawing.Color.White;
+            this.btnProfile.Location = new System.Drawing.Point(0, 330);
+            this.btnProfile.Name = "btnProfile";
+            this.btnProfile.Size = new System.Drawing.Size(220, 50);
+            this.btnProfile.TabIndex = 6;
+            this.btnProfile.Text = "   My Profile";
+            this.btnProfile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnProfile.UseVisualStyleBackColor = true;
+            // 
             // btnAdminMode
             this.btnAdminMode.Text = "🔒 Admin Mode";
             this.btnAdminMode.FlatStyle = FlatStyle.Flat;
@@ -207,6 +241,8 @@ namespace Mental_web
         private System.Windows.Forms.Button btnAssessment;
         private System.Windows.Forms.Button btnAppointment;
         private System.Windows.Forms.Button btnResources;
+        private System.Windows.Forms.Button btnProgress;
+        private System.Windows.Forms.Button btnProfile;
         private System.Windows.Forms.Button btnAdminMode;
         private System.Windows.Forms.Panel titleBar;
         private System.Windows.Forms.Label lblTitle;
