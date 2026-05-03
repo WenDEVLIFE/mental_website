@@ -128,6 +128,13 @@ namespace Mental_web.Views
             {
                 using (var db = CreateContext())
                 {
+                    // Safety check: ensure student exists before booking
+                    if (!db.Students.Any(s => s.StudentId == _session.UserId))
+                    {
+                        MessageBox.Show("Your account was not found in the student records. Only students can book appointments.", "Booking Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
                     var app = new Appointment {
                         StudentId = _session.UserId,
                         CounselorId = (int)_cmbCounselor.SelectedValue,
@@ -145,7 +152,9 @@ namespace Mental_web.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error booking appointment: " + ex.Message);
+                string error = ex.Message;
+                if (ex.InnerException != null) error += "\n\nDetails: " + ex.InnerException.Message;
+                MessageBox.Show("Error booking appointment: " + error, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
