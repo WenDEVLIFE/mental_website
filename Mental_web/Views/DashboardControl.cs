@@ -12,6 +12,8 @@ namespace Mental_web.Views
     {
         private UserSession _session;
 
+        public DashboardControl() : this(new UserSession()) { }
+
         public DashboardControl(UserSession session)
         {
             _session = session;

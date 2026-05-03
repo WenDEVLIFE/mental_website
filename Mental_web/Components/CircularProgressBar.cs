@@ -10,13 +10,15 @@ namespace Mental_web.Components
         private int _value = 85;
         private int _maxValue = 100;
         private Color _progressColor = Color.FromArgb(45, 90, 39);
-        private Color _backColor = Color.FromArgb(232, 245, 233);
+        private Color _innerColor = Color.FromArgb(232, 245, 233);
         private int _strokeWidth = 10;
 
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Visible)]
         public int Value { get => _value; set { _value = value; Invalidate(); } }
         [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Visible)]
         public Color ProgressColor { get => _progressColor; set { _progressColor = value; Invalidate(); } }
+        [System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Visible)]
+        public Color InnerColor { get => _innerColor; set { _innerColor = value; Invalidate(); } }
 
         public CircularProgressBar()
         {
@@ -33,7 +35,7 @@ namespace Mental_web.Components
                                          Width - _strokeWidth, Height - _strokeWidth);
 
             // Draw Background Circle
-            using (Pen backPen = new Pen(_backColor, _strokeWidth))
+            using (Pen backPen = new Pen(_innerColor, _strokeWidth))
             {
                 e.Graphics.DrawEllipse(backPen, rect);
             }

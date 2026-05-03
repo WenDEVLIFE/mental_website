@@ -14,7 +14,7 @@ namespace Mental_web
         [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
 
-        private bool _isAdminMode = false;
+
 
         public MainForm()
         {

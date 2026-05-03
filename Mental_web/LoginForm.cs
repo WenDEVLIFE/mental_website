@@ -74,7 +74,7 @@ namespace Mental_web
                     btnLogin.Enabled = true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 lblError.Text = "Error connecting to database.";
                 btnLogin.Enabled = true;
