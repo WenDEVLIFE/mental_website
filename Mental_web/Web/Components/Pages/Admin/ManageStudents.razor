@@ -1,0 +1,11 @@
+@page "/students"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+
+<PageTitle>Manage Students</PageTitle>
+
+<h1>Manage Students</h1>
+<p>Admin view to manage all student accounts and system access.</p>
+
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i> This page is strictly restricted to Administrators.
+</div>

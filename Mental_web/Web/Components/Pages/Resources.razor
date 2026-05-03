@@ -1,4 +1,5 @@
 @page "/resources"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <h1 style="color: var(--primary); margin: 0;">Resources Hub</h1>

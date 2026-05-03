@@ -1,0 +1,11 @@
+@page "/schedule"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Counselor")]
+
+<PageTitle>Schedule Settings</PageTitle>
+
+<h1>Schedule Settings</h1>
+<p>Counselor view to manage availability and view assigned appointments.</p>
+
+<div class="alert alert-success">
+    <i class="bi bi-shield-check"></i> This page is strictly restricted to Counselors.
+</div>
