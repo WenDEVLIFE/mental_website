@@ -17,9 +17,9 @@ This task list focuses on developing the C# WinForms prototype for the Student M
 - [x] Add smooth hover effects to navigation buttons. **(DONE)**
 
 ## Phase 3: Core View Implementation (UserControls)
-- [ ] **Dashboard View:**
-    - [ ] Circular Progress Bars or Custom Painted Charts for mental health stats.
-    - [ ] Card-style Panels for "Next Appointment" and "Recent Tips".
+- [x] **Dashboard View:** **(DONE)**
+    - [x] Circular Progress Bars or Custom Painted Charts for mental health stats. **(DONE)**
+    - [x] Card-style Panels for "Next Appointment" and "Recent Tips". **(DONE)**
 - [ ] **Self-Assessment View:**
     - [ ] Logic to cycle through questions within a single `UserControl`.
     - [ ] Visual feedback for radio buttons/checkboxes (Custom styled).
