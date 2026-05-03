@@ -1,39 +1,58 @@
 @page "/"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
 
-<h1 style="color: var(--primary); margin-bottom: 30px;">Hello, Mark!</h1>
+<h1 style="color: var(--primary); margin-bottom: 30px;">Hello, @UserName!</h1>
 
 <div class="stat-grid">
     <div class="card" style="text-align: center;">
-        <div class="progress-circle">85%</div>
+        <div class="progress-circle">@(LastAssessmentScore)%</div>
         <h3 style="margin: 0;">Mental Health Score</h3>
-        <p style="color: var(--text-secondary);">Good Standing</p>
+        <p style="color: var(--text-secondary);">@AssessmentStatus</p>
     </div>
     
     <div class="card">
         <h3 style="color: var(--primary);">Next Appointment</h3>
-        <h2 style="margin: 15px 0;">Dr. Reyes</h2>
-        <p style="color: var(--text-secondary);">Tomorrow, 10:00 AM</p>
-        <button class="btn-primary">View Details</button>
+        @if (NextAppointment != null)
+        {
+            <h2 style="margin: 15px 0;">@NextAppointment.Counselor.Name</h2>
+            <p style="color: var(--text-secondary);">@NextAppointment.Date.ToShortDateString(), @NextAppointment.Time</p>
+        }
+        else
+        {
+            <p style="margin: 15px 0; color: var(--text-secondary);">No upcoming appointments.</p>
+        }
+        <a href="/appointments" class="btn btn-primary" style="width: 100%; margin-top: 10px;">View Details</a>
     </div>
 
     <div class="card">
-        <h3 style="color: var(--primary);">Resources Read</h3>
-        <h2 style="margin: 15px 0;">12 Articles</h2>
-        <p style="color: var(--text-secondary);">Keep it up!</p>
-        <button class="btn-primary">Browse More</button>
+        <h3 style="color: var(--primary);">Resources Available</h3>
+        <h2 style="margin: 15px 0;">@ResourceCount Articles</h2>
+        <p style="color: var(--text-secondary);">Keep learning!</p>
+        <a href="/resources" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Browse More</a>
     </div>
 </div>
 
-<h2 style="color: var(--primary); margin: 40px 0 20px;">Recommended Tips for You</h2>
+<h2 style="color: var(--primary); margin: 40px 0 20px;">System Announcements</h2>
 <div class="stat-grid">
-    <div class="card">
-        <h4 style="margin: 0 0 10px; color: var(--primary);">Practice Deep Breathing</h4>
-        <p style="font-size: 0.9rem;">5 mins a day reduces stress significantly. Try it before your next class.</p>
-    </div>
-    <div class="card">
-        <h4 style="margin: 0 0 10px; color: var(--primary);">Hydration & Mood</h4>
-        <p style="font-size: 0.9rem;">Drinking enough water can improve focus and emotional stability.</p>
-    </div>
+    @if (Notifications != null && Notifications.Any())
+    {
+        @foreach (var note in Notifications)
+        {
+            <div class="card">
+                <h4 style="margin: 0 0 10px; color: var(--primary);">Notification</h4>
+                <p style="font-size: 0.9rem;">@note.Message</p>
+                <small class="text-muted">@note.CreatedAt?.ToString("g")</small>
+            </div>
+        }
+    }
+    else
+    {
+        <p>No new notifications at this time.</p>
+    }
 </div>
 
 <style>
@@ -45,7 +64,85 @@
         border-radius: 10px;
         cursor: pointer;
         font-weight: bold;
-        width: 100%;
-        margin-top: 10px;
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+    }
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .progress-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: conic-gradient(var(--primary) 85%, #eee 0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        margin: 0 auto 15px;
+        color: var(--primary);
     }
 </style>
+
+@code {
+    private string UserName = "User";
+    private int LastAssessmentScore = 0;
+    private string AssessmentStatus = "Take an assessment!";
+    private Mental_web.Data.Appointment? NextAppointment;
+    private int ResourceCount = 0;
+    private List<Mental_web.Data.Notification> Notifications = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            UserName = user.Identity.Name ?? "User";
+            var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+                if (role == "Student")
+                {
+                    var lastAss = await DbContext.SelfAssessments
+                        .Where(s => s.StudentId == userId)
+                        .OrderByDescending(s => s.DateTaken)
+                        .FirstOrDefaultAsync();
+                        
+                    if (lastAss != null && lastAss.Score.HasValue)
+                    {
+                        LastAssessmentScore = lastAss.Score.Value;
+                        AssessmentStatus = lastAss.Result ?? "Completed";
+                    }
+
+                    NextAppointment = await DbContext.Appointments
+                        .Include(a => a.Counselor)
+                        .Where(a => a.StudentId == userId && a.Date >= DateTime.Today && a.Status != "Cancelled")
+                        .OrderBy(a => a.Date)
+                        .FirstOrDefaultAsync();
+                        
+                    Notifications = await DbContext.Notifications
+                        .Where(n => n.StudentId == userId)
+                        .OrderByDescending(n => n.CreatedAt)
+                        .Take(3)
+                        .ToListAsync();
+                }
+            }
+
+            ResourceCount = await DbContext.Resources.CountAsync();
+        }
+    }
+}

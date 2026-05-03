@@ -1,0 +1,121 @@
+@page "/admin/dashboard"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<h1 style="color: var(--primary); margin-bottom: 20px;">System Administrator Dashboard</h1>
+<p>Handles system maintenance, data accuracy, privacy, and organization.</p>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card p-3 mb-3 bg-light">
+            <h3>@TotalStudents</h3>
+            <p>Total Students</p>
+            <a href="/students" class="btn btn-sm btn-primary">Manage Access</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 mb-3 bg-light">
+            <h3>@PendingAppointments</h3>
+            <p>Pending Appointments</p>
+            <a href="/queue" class="btn btn-sm btn-primary">Monitor Schedules</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 mb-3 bg-light">
+            <h3>@TotalResources</h3>
+            <p>Mental Health Resources</p>
+            <button class="btn btn-sm btn-primary" @onclick="() => ManageResources = !ManageResources">Manage Resources</button>
+        </div>
+    </div>
+</div>
+
+@if (ManageResources)
+{
+    <div class="card p-4 mt-3">
+        <h4>Manage Mental Health Resources</h4>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" @bind="NewResourceTitle" placeholder="Resource Title" />
+            <input type="text" class="form-control" @bind="NewResourceType" placeholder="Type (Article/Video)" />
+            <button class="btn btn-success" @onclick="AddResource">Add</button>
+        </div>
+        <ul class="list-group">
+            @foreach(var r in Resources)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    @r.Title (@r.ContentType)
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h4>System Activity Logs</h4>
+            <small class="text-muted mb-2">Tracks system activities for privacy and security.</small>
+            <ul class="list-group">
+                @foreach(var log in Logs)
+                {
+                    <li class="list-group-item">
+                        <strong>@log.Role</strong>: @log.Action
+                        <span class="float-end text-muted">@log.Timestamp?.ToString("g")</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h4>Send System Announcements</h4>
+            <small class="text-muted mb-2">Sends notifications and reminders to users.</small>
+            <textarea class="form-control mb-2" rows="3" placeholder="Enter announcement text..."></textarea>
+            <button class="btn btn-primary">Send Announcement</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int TotalStudents = 0;
+    private int PendingAppointments = 0;
+    private int TotalResources = 0;
+    
+    private bool ManageResources = false;
+    private string NewResourceTitle = "";
+    private string NewResourceType = "";
+    
+    private List<Mental_web.Data.ActivityLog> Logs = new();
+    private List<Mental_web.Data.Resource> Resources = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        TotalStudents = await DbContext.Students.CountAsync();
+        PendingAppointments = await DbContext.Appointments.CountAsync(a => a.Status == "Pending");
+        TotalResources = await DbContext.Resources.CountAsync();
+        
+        Logs = await DbContext.ActivityLogs.OrderByDescending(l => l.Timestamp).Take(5).ToListAsync();
+        Resources = await DbContext.Resources.ToListAsync();
+    }
+    
+    private async Task AddResource()
+    {
+        if(!string.IsNullOrWhiteSpace(NewResourceTitle))
+        {
+            DbContext.Resources.Add(new Mental_web.Data.Resource { Title = NewResourceTitle, ContentType = NewResourceType, ContentBody = "Placeholder" });
+            
+            // Add Activity Log
+            DbContext.ActivityLogs.Add(new Mental_web.Data.ActivityLog { UserId = 1, Role = "Admin", Action = $"Added resource: {NewResourceTitle}" });
+            
+            await DbContext.SaveChangesAsync();
+            NewResourceTitle = "";
+            NewResourceType = "";
+            TotalResources = await DbContext.Resources.CountAsync();
+            Resources = await DbContext.Resources.ToListAsync();
+            Logs = await DbContext.ActivityLogs.OrderByDescending(l => l.Timestamp).Take(5).ToListAsync();
+        }
+    }
+}

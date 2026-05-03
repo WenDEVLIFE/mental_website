@@ -1,11 +1,77 @@
 @page "/students"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@using Microsoft.EntityFrameworkCore
 
 <PageTitle>Manage Students</PageTitle>
 
-<h1>Manage Students</h1>
-<p>Admin view to manage all student accounts and system access.</p>
+<h1 style="color: var(--primary); margin-bottom: 20px;">Manage Students</h1>
+<p>Verifies and updates student information, and monitors assessment results.</p>
 
-<div class="alert alert-info">
-    <i class="bi bi-info-circle"></i> This page is strictly restricted to Administrators.
+<div class="card p-4">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Course & Year</th>
+                <th>Email</th>
+                <th>Latest Assessment</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Students == null)
+            {
+                <tr><td colspan="6">Loading...</td></tr>
+            }
+            else if (!Students.Any())
+            {
+                <tr><td colspan="6">No students found.</td></tr>
+            }
+            else
+            {
+                @foreach (var s in Students)
+                {
+                    <tr>
+                        <td>@s.StudentId</td>
+                        <td>@s.FirstName @s.LastName</td>
+                        <td>@s.Course - Year @s.YearLevel</td>
+                        <td>@s.Email</td>
+                        <td>
+                            @{
+                                var lastAss = Assessments.FirstOrDefault(a => a.StudentId == s.StudentId);
+                                if (lastAss != null)
+                                {
+                                    <span class="badge bg-info text-dark">Score: @lastAss.Score</span>
+                                    <small class="d-block text-muted">@lastAss.Result</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">None</span>
+                                }
+                            }
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger">Suspend</button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 </div>
+
+@code {
+    private List<Mental_web.Data.Student> Students = new();
+    private List<Mental_web.Data.SelfAssessment> Assessments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Students = await DbContext.Students.ToListAsync();
+        Assessments = await DbContext.SelfAssessments
+            .OrderByDescending(a => a.DateTaken)
+            .ToListAsync();
+    }
+}

@@ -1,11 +1,95 @@
 @page "/queue"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@inject Mental_web.Data.MentalHealthContext DbContext
+@using Microsoft.EntityFrameworkCore
 
 <PageTitle>Appointment Queue</PageTitle>
 
-<h1>Appointment Queue</h1>
-<p>Admin view to manage and control appointment schedules of counselors.</p>
+<h1 style="color: var(--primary); margin-bottom: 20px;">Appointment Queue</h1>
+<p>Approves or declines appointment requests, and assigns counselors.</p>
 
-<div class="alert alert-info">
-    <i class="bi bi-info-circle"></i> This page is strictly restricted to Administrators.
+<div class="card p-4">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date / Time</th>
+                <th>Student</th>
+                <th>Counselor</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Appointments == null)
+            {
+                <tr><td colspan="5">Loading...</td></tr>
+            }
+            else if (!Appointments.Any())
+            {
+                <tr><td colspan="5">No appointments in queue.</td></tr>
+            }
+            else
+            {
+                @foreach (var app in Appointments)
+                {
+                    <tr>
+                        <td>@app.Date.ToShortDateString() @app.Time</td>
+                        <td>@(app.Student?.FirstName) @(app.Student?.LastName)</td>
+                        <td>@(app.Counselor?.Name)</td>
+                        <td>
+                            <span class="badge @(app.Status == "Pending" ? "bg-warning text-dark" : app.Status == "Approved" ? "bg-success" : "bg-secondary")">
+                                @app.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (app.Status == "Pending")
+                            {
+                                <button class="btn btn-sm btn-success" @onclick='() => UpdateStatus(app, "Approved")'>Approve</button>
+                                <button class="btn btn-sm btn-danger" @onclick='() => UpdateStatus(app, "Declined")'>Decline</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" disabled>Processed</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 </div>
+
+@code {
+    private List<Mental_web.Data.Appointment> Appointments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAppointments();
+    }
+
+    private async Task LoadAppointments()
+    {
+        Appointments = await DbContext.Appointments
+            .Include(a => a.Student)
+            .Include(a => a.Counselor)
+            .OrderByDescending(a => a.Date)
+            .ToListAsync();
+    }
+
+    private async Task UpdateStatus(Mental_web.Data.Appointment app, string newStatus)
+    {
+        app.Status = newStatus;
+        DbContext.Appointments.Update(app);
+        
+        // Add Activity Log
+        var log = new Mental_web.Data.ActivityLog {
+            UserId = 1, // Admin ID
+            Role = "Admin",
+            Action = $"Appointment {app.AppointmentId} {newStatus}"
+        };
+        DbContext.ActivityLogs.Add(log);
+        
+        await DbContext.SaveChangesAsync();
+        await LoadAppointments();
+    }
+}

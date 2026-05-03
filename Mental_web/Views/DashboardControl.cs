@@ -1,13 +1,20 @@
 using System.Windows.Forms;
 using System.Drawing;
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Mental_web.UI;
+using Mental_web.Data;
 
 namespace Mental_web.Views
 {
     public partial class DashboardControl : UserControl
     {
-        public DashboardControl()
+        private UserSession _session;
+
+        public DashboardControl(UserSession session)
         {
+            _session = session;
             InitializeComponent();
             SetupUI();
         }
@@ -17,14 +24,29 @@ namespace Mental_web.Views
             this.BackColor = AppTheme.BackgroundColor;
             this.Dock = DockStyle.Fill;
 
+            var dbContext = Program.ServiceProvider.GetRequiredService<MentalHealthContext>();
+            
             var lblWelcome = new Label {
-                Text = "Hello, Mark!",
+                Text = $"Hello, {_session.Username}!",
                 Font = AppTheme.HeaderFont,
                 ForeColor = AppTheme.PrimaryColor,
                 Location = new Point(30, 30),
                 AutoSize = true
             };
             this.Controls.Add(lblWelcome);
+
+            int score = 0;
+            string status = "Take an assessment!";
+            var lastAss = dbContext.SelfAssessments
+                .Where(s => s.StudentId == _session.UserId)
+                .OrderByDescending(s => s.DateTaken)
+                .FirstOrDefault();
+                
+            if (lastAss != null && lastAss.Score.HasValue)
+            {
+                score = lastAss.Score.Value;
+                status = lastAss.Result ?? "Completed";
+            }
 
             // Circular Progress Area
             var progressPanel = new Panel {
@@ -35,10 +57,10 @@ namespace Mental_web.Views
             var progressBar = new Components.CircularProgressBar {
                 Location = new Point(40, 40),
                 Size = new Size(120, 120),
-                Value = 85
+                Value = score
             };
             var lblProgress = new Label {
-                Text = "Mental Health Score",
+                Text = "Mental Health Score\n" + status,
                 Font = new Font("Segoe UI", 9, FontStyle.Bold),
                 Location = new Point(0, 180),
                 Width = 200,
@@ -48,13 +70,24 @@ namespace Mental_web.Views
             progressPanel.Controls.Add(lblProgress);
             this.Controls.Add(progressPanel);
 
+            var nextApp = dbContext.Appointments
+                .Include(a => a.Counselor)
+                .Where(a => a.StudentId == _session.UserId && a.Date >= System.DateTime.Today && a.Status != "Cancelled")
+                .OrderBy(a => a.Date)
+                .FirstOrDefault();
+
+            string cName = nextApp != null ? nextApp.Counselor.Name : "No upcoming";
+            string cDate = nextApp != null ? $"{nextApp.Date.ToShortDateString()}, {nextApp.Time}" : "appointments.";
+
             // Stats Cards
-            CreateStatCard("Next Appointment", "Dr. Reyes", "Tomorrow, 10 AM", new Point(250, 90));
-            CreateStatCard("Resources Read", "12", "Keep it up!", new Point(500, 90));
+            CreateStatCard("Next Appointment", cName, cDate, new Point(250, 90));
+            
+            int resourceCount = dbContext.Resources.Count();
+            CreateStatCard("Resources Available", $"{resourceCount} Articles", "Keep learning!", new Point(500, 90));
 
             // Recent Tips Section
             var lblTips = new Label {
-                Text = "Recommended Tips for You",
+                Text = "System Notifications",
                 Font = AppTheme.HeaderFont,
                 ForeColor = AppTheme.PrimaryColor,
                 Location = new Point(30, 360),
@@ -62,8 +95,25 @@ namespace Mental_web.Views
             };
             this.Controls.Add(lblTips);
 
-            CreateTipCard("Practice Deep Breathing", "5 mins a day reduces stress significantly.", new Point(30, 410));
-            CreateTipCard("Hydration & Mood", "Drinking enough water can improve focus.", new Point(390, 410));
+            var notes = dbContext.Notifications
+                .Where(n => n.StudentId == _session.UserId)
+                .OrderByDescending(n => n.CreatedAt)
+                .Take(2)
+                .ToList();
+
+            if (notes.Count > 0)
+            {
+                CreateTipCard("Notification", notes[0].Message, new Point(30, 410));
+            }
+            else
+            {
+                CreateTipCard("Welcome", "No new notifications.", new Point(30, 410));
+            }
+
+            if (notes.Count > 1)
+            {
+                CreateTipCard("Notification", notes[1].Message, new Point(390, 410));
+            }
         }
 
         private void CreateTipCard(string title, string desc, Point loc)

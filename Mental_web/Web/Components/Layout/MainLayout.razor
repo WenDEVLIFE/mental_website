@@ -4,21 +4,54 @@
     <div class="sidebar">
         <div class="logo-area">SMHASS</div>
         <div class="nav-links">
-            <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
-                <span>Dashboard</span>
-            </NavLink>
-            <NavLink class="nav-item" href="assessment">
-                <span>Assessment</span>
-            </NavLink>
-            <NavLink class="nav-item" href="appointments">
-                <span>Appointments</span>
-            </NavLink>
-            <NavLink class="nav-item" href="resources">
-                <span>Resources</span>
-            </NavLink>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <NavLink class="nav-item" href="admin/dashboard" Match="NavLinkMatch.All">
+                        <span>Admin Dashboard</span>
+                    </NavLink>
+                    <NavLink class="nav-item" href="students">
+                        <span>Manage Students</span>
+                    </NavLink>
+                    <NavLink class="nav-item" href="queue">
+                        <span>Appointment Queue</span>
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Counselor">
+                <Authorized>
+                    <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+                        <span>My Appointments</span>
+                    </NavLink>
+                    <NavLink class="nav-item" href="schedule">
+                        <span>Schedule Settings</span>
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Student">
+                <Authorized>
+                    <NavLink class="nav-item" href="" Match="NavLinkMatch.All">
+                        <span>Dashboard</span>
+                    </NavLink>
+                    <NavLink class="nav-item" href="assessment">
+                        <span>Assessment</span>
+                    </NavLink>
+                    <NavLink class="nav-item" href="appointments">
+                        <span>Appointments</span>
+                    </NavLink>
+                    <NavLink class="nav-item" href="resources">
+                        <span>Resources</span>
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
         </div>
-        <div class="nav-item" style="color: gold; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
-            🔒 Admin Mode (Prototype)
+        
+        <div class="nav-item" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding: 15px;">
+            <a href="/logout" data-enhance-nav="false" style="color: #ff6b6b; text-decoration: none; display: flex; align-items: center; width: 100%;">
+                <span class="bi bi-box-arrow-right" style="margin-right: 10px;"></span>
+                Logout
+            </a>
         </div>
     </div>
     

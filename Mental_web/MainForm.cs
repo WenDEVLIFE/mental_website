@@ -26,7 +26,7 @@ namespace Mental_web
             this.btnDashboard.Click += (s, e) => {
                 if (_currentUser?.Role == "Admin") ShowView(new Views.Admin.AdminDashboardControl(), "Admin Dashboard");
                 else if (_currentUser?.Role == "Counselor") ShowView(new Views.Admin.AppointmentQueueControl(), "My Appointments");
-                else ShowView(new Views.DashboardControl(), "Dashboard");
+                else ShowView(new Views.DashboardControl(_currentUser!), "Dashboard");
             };
             this.btnAssessment.Click += (s, e) => {
                 if (_currentUser?.Role == "Admin") ShowView(new Views.Admin.StudentManagementControl(), "Student Management");
@@ -38,7 +38,13 @@ namespace Mental_web
             };
             this.btnResources.Click += (s, e) => ShowView(new Views.ResourcesControl(), "Resources");
 
-            // Admin mode toggle removed, using login instead
+            // Repurpose Admin mode button to Logout
+            btnAdminMode.Text = "   Logout";
+            btnAdminMode.Click += (s, e) => {
+                _currentUser = null!;
+                PerformLogin();
+            };
+
             // Hover effects
             SetupHover(btnDashboard);
             SetupHover(btnAssessment);
@@ -51,16 +57,37 @@ namespace Mental_web
             UIHelper.SetDoubleBuffered(contentPanel);
         }
 
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            PerformLogin();
+        }
+
+        private void PerformLogin()
+        {
+            this.Hide();
+            using var loginForm = new LoginForm();
+            if (loginForm.ShowDialog(this) == DialogResult.OK && loginForm.AuthenticatedUser != null)
+            {
+                SetUserSession(loginForm.AuthenticatedUser);
+                this.Show();
+            }
+            else
+            {
+                Application.Exit();
+            }
+        }
+
         private UserSession _currentUser = null!;
 
         public void SetUserSession(UserSession session)
         {
             _currentUser = session;
             lblTitle.Text = $"Welcome, {session.Username} ({session.Role})";
+            btnAdminMode.Visible = true; // Logout button is always visible
             
             if (session.Role == "Admin")
             {
-                btnAdminMode.Visible = false;
                 btnDashboard.Text = "   Admin Dashboard";
                 btnAssessment.Text = "   Manage Students";
                 btnAssessment.Visible = true;
@@ -70,7 +97,6 @@ namespace Mental_web
             }
             else if (session.Role == "Counselor")
             {
-                btnAdminMode.Visible = false;
                 btnDashboard.Text = "   My Appointments";
                 btnAssessment.Visible = false;
                 btnAppointment.Text = "   Schedule settings";
@@ -79,13 +105,12 @@ namespace Mental_web
             }
             else
             {
-                btnAdminMode.Visible = false;
                 btnDashboard.Text = "   Dashboard";
                 btnAssessment.Text = "   Assessment";
                 btnAssessment.Visible = true;
                 btnAppointment.Text = "   Appointments";
                 btnResources.Visible = true;
-                ShowView(new Views.DashboardControl(), "Dashboard");
+                ShowView(new Views.DashboardControl(_currentUser), "Dashboard");
             }
         }
 
