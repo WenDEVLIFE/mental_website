@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Mental_web.UI;
 using Mental_web.Data;
 
@@ -11,14 +12,12 @@ namespace Mental_web.Views
     public class ProfileControl : UserControl
     {
         private UserSession _session;
-        private MentalHealthContext _db;
         private TextBox txtFirst, txtLast, txtContact, txtCourse;
         private NumericUpDown numYear;
 
         public ProfileControl(UserSession session)
         {
             _session = session;
-            _db = Program.ServiceProvider.GetRequiredService<MentalHealthContext>();
             SetupUI();
             LoadData();
         }
@@ -85,31 +84,50 @@ namespace Mental_web.Views
 
         private void LoadData()
         {
-            var student = _db.Students.Find(_session.UserId);
-            if (student != null)
+            try
             {
-                txtFirst.Text = student.FirstName;
-                txtLast.Text = student.LastName;
-                txtContact.Text = student.ContactNumber;
-                txtCourse.Text = student.Course;
-                numYear.Value = (decimal)(student.YearLevel ?? 1);
+                using (var db = CreateContext())
+                {
+                    var student = db.Students.Find(_session.UserId);
+                    if (student != null)
+                    {
+                        txtFirst.Text = student.FirstName;
+                        txtLast.Text = student.LastName;
+                        txtContact.Text = student.ContactNumber;
+                        txtCourse.Text = student.Course;
+                        numYear.Value = (decimal)(student.YearLevel ?? 1);
+                    }
+                }
             }
+            catch (Exception ex) { MessageBox.Show("Error loading profile: " + ex.Message); }
         }
 
         private void SaveProfile()
         {
-            var student = _db.Students.Find(_session.UserId);
-            if (student != null)
+            try
             {
-                student.FirstName = txtFirst.Text;
-                student.LastName = txtLast.Text;
-                student.ContactNumber = txtContact.Text;
-                student.Course = txtCourse.Text;
-                student.YearLevel = (int)numYear.Value;
+                using (var db = CreateContext())
+                {
+                    var student = db.Students.Find(_session.UserId);
+                    if (student != null)
+                    {
+                        student.FirstName = txtFirst.Text;
+                        student.LastName = txtLast.Text;
+                        student.ContactNumber = txtContact.Text;
+                        student.Course = txtCourse.Text;
+                        student.YearLevel = (int)numYear.Value;
 
-                _db.SaveChanges();
-                MessageBox.Show("Profile updated successfully!", "Success");
+                        db.SaveChanges();
+                        MessageBox.Show("Profile updated successfully!", "Success");
+                    }
+                }
             }
+            catch (Exception ex) { MessageBox.Show("Error saving profile: " + ex.Message); }
+        }
+
+        private MentalHealthContext CreateContext()
+        {
+            return new MentalHealthContext(Program.ServiceProvider.GetRequiredService<DbContextOptions<MentalHealthContext>>());
         }
     }
 }

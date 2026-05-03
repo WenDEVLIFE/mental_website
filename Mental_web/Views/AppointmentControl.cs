@@ -13,7 +13,6 @@ namespace Mental_web.Views
     public partial class AppointmentControl : UserControl
     {
         private UserSession _session;
-        private MentalHealthContext _db;
         private ComboBox _cmbCounselor;
         private DateTimePicker _dtpDate;
         private ComboBox _cmbTime;
@@ -22,13 +21,11 @@ namespace Mental_web.Views
         public AppointmentControl(UserSession session)
         {
             _session = session;
-            _db = Program.ServiceProvider.GetRequiredService<MentalHealthContext>();
             InitializeComponent();
             SetupUI();
             LoadData();
         }
 
-        // Parameterless for designer
         public AppointmentControl() : this(new UserSession()) { }
 
         private void SetupUI()
@@ -45,14 +42,12 @@ namespace Mental_web.Views
             };
             this.Controls.Add(lblTitle);
 
-            // Tab Control for Book vs History
             TabControl tabs = new TabControl {
                 Location = new Point(30, 80),
                 Size = new Size(740, 480),
                 Font = new Font("Segoe UI", 10)
             };
 
-            // Booking Page
             TabPage tpBook = new TabPage("Schedule Session");
             tpBook.BackColor = Color.White;
             
@@ -88,7 +83,6 @@ namespace Mental_web.Views
             tpBook.Controls.Add(btnBook);
             UIHelper.MakeRounded(btnBook, 12);
 
-            // History Page
             TabPage tpHistory = new TabPage("My Appointments Status");
             tpHistory.BackColor = Color.White;
             _historyPanel = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(10) };
@@ -110,65 +104,100 @@ namespace Mental_web.Views
 
         private void LoadData()
         {
-            var counselors = _db.Counselors.ToList();
-            _cmbCounselor.DataSource = counselors;
-            _cmbCounselor.DisplayMember = "Name";
-            _cmbCounselor.ValueMember = "CounselorId";
+            try
+            {
+                using (var db = CreateContext())
+                {
+                    var counselors = db.Counselors.ToList();
+                    _cmbCounselor.DataSource = counselors;
+                    _cmbCounselor.DisplayMember = "Name";
+                    _cmbCounselor.ValueMember = "CounselorId";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading counselors: " + ex.Message);
+            }
         }
 
         private void BookSession()
         {
             if (_cmbCounselor.SelectedValue == null) return;
 
-            var app = new Appointment {
-                StudentId = _session.UserId,
-                CounselorId = (int)_cmbCounselor.SelectedValue,
-                Date = _dtpDate.Value.Date,
-                Time = DateTime.Parse(_cmbTime.Text).TimeOfDay,
-                Status = "Pending",
-                CreatedAt = DateTime.Now
-            };
+            try
+            {
+                using (var db = CreateContext())
+                {
+                    var app = new Appointment {
+                        StudentId = _session.UserId,
+                        CounselorId = (int)_cmbCounselor.SelectedValue,
+                        Date = _dtpDate.Value.Date,
+                        Time = DateTime.Parse(_cmbTime.Text).TimeOfDay,
+                        Status = "Pending",
+                        CreatedAt = DateTime.Now
+                    };
 
-            _db.Appointments.Add(app);
-            _db.SaveChanges();
-            MessageBox.Show("Your appointment request has been sent! Check the history tab for status updates.", "Success");
-            LoadHistory();
+                    db.Appointments.Add(app);
+                    db.SaveChanges();
+                    MessageBox.Show("Your appointment request has been sent!", "Success");
+                    LoadHistory();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error booking appointment: " + ex.Message);
+            }
         }
 
         private void LoadHistory()
         {
             _historyPanel.Controls.Clear();
-            var history = _db.Appointments
-                .Include(a => a.Counselor)
-                .Where(a => a.StudentId == _session.UserId)
-                .OrderByDescending(a => a.Date)
-                .ToList();
-
-            foreach (var app in history)
+            try
             {
-                Panel card = new Panel { Size = new Size(680, 70), BackColor = Color.FromArgb(245, 245, 245), Margin = new Padding(0, 0, 0, 10) };
-                UIHelper.MakeRounded(card, 12);
-                
-                var lblInfo = new Label {
-                    Text = $"{app.Date:MMM dd, yyyy} at {app.Time} - with {app.Counselor.Name}",
-                    Font = new Font("Segoe UI", 10),
-                    Location = new Point(15, 25),
-                    AutoSize = true
-                };
-                
-                var lblStatus = new Label {
-                    Text = app.Status,
-                    Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                    ForeColor = GetStatusColor(app.Status),
-                    Location = new Point(550, 25),
-                    Width = 100,
-                    TextAlign = ContentAlignment.TopRight
-                };
+                using (var db = CreateContext())
+                {
+                    var history = db.Appointments
+                        .Include(a => a.Counselor)
+                        .Where(a => a.StudentId == _session.UserId)
+                        .OrderByDescending(a => a.Date)
+                        .ToList();
 
-                card.Controls.Add(lblInfo);
-                card.Controls.Add(lblStatus);
-                _historyPanel.Controls.Add(card);
+                    foreach (var app in history)
+                    {
+                        Panel card = new Panel { Size = new Size(680, 70), BackColor = Color.FromArgb(245, 245, 245), Margin = new Padding(0, 0, 0, 10) };
+                        UIHelper.MakeRounded(card, 12);
+                        
+                        var lblInfo = new Label {
+                            Text = $"{app.Date:MMM dd, yyyy} at {app.Time} - with {app.Counselor.Name}",
+                            Font = new Font("Segoe UI", 10),
+                            Location = new Point(15, 25),
+                            AutoSize = true
+                        };
+                        
+                        var lblStatus = new Label {
+                            Text = app.Status,
+                            Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                            ForeColor = GetStatusColor(app.Status),
+                            Location = new Point(550, 25),
+                            Width = 100,
+                            TextAlign = ContentAlignment.TopRight
+                        };
+
+                        card.Controls.Add(lblInfo);
+                        card.Controls.Add(lblStatus);
+                        _historyPanel.Controls.Add(card);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading history: " + ex.Message);
+            }
+        }
+
+        private MentalHealthContext CreateContext()
+        {
+            return new MentalHealthContext(Program.ServiceProvider.GetRequiredService<DbContextOptions<MentalHealthContext>>());
         }
 
         private Color GetStatusColor(string status) => status switch {

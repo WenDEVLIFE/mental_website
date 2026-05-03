@@ -12,14 +12,12 @@ namespace Mental_web.Views.Admin
 {
     public partial class AdminDashboardControl : UserControl
     {
-        private MentalHealthContext _db;
         private ListBox _lstResources;
         private TextBox _txtAnnounce;
 
         public AdminDashboardControl()
         {
             InitializeComponent();
-            _db = Program.ServiceProvider.GetRequiredService<MentalHealthContext>();
             SetupUI();
         }
 
@@ -37,16 +35,22 @@ namespace Mental_web.Views.Admin
             };
             this.Controls.Add(lblWelcome);
 
-            int totalStudents = _db.Students.Count();
-            int pendingApps = _db.Appointments.Count(a => a.Status == "Pending");
-            int resourceCount = _db.Resources.Count();
+            int totalStudents = 0, pendingApps = 0, resourceCount = 0;
+            try
+            {
+                using (var db = CreateContext())
+                {
+                    totalStudents = db.Students.Count();
+                    pendingApps = db.Appointments.Count(a => a.Status == "Pending");
+                    resourceCount = db.Resources.Count();
+                }
+            }
+            catch { /* Silent fail for stats */ }
 
-            // Stats Cards
             CreateStatCard("Students", totalStudents.ToString(), "Active", new Point(30, 90), Color.FromArgb(232, 245, 233), Color.FromArgb(46, 125, 50));
             CreateStatCard("Pending", pendingApps.ToString(), "Appointments", new Point(250, 90), Color.FromArgb(255, 243, 224), Color.FromArgb(230, 81, 0));
             CreateStatCard("Resources", resourceCount.ToString(), "Published", new Point(470, 90), Color.FromArgb(227, 242, 253), Color.FromArgb(21, 101, 192));
 
-            // Announcement Section
             var groupAnn = new GroupBox { Text = "Send System Announcement", Location = new Point(30, 280), Size = new Size(350, 250), Font = new Font("Segoe UI", 10, FontStyle.Bold) };
             _txtAnnounce = new TextBox { Multiline = true, Location = new Point(15, 30), Size = new Size(320, 150), Font = new Font("Segoe UI", 10) };
             var btnSend = new Button { Text = "Broadcast to All Students", Location = new Point(15, 190), Size = new Size(320, 40), BackColor = AppTheme.PrimaryColor, ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
@@ -55,7 +59,6 @@ namespace Mental_web.Views.Admin
             groupAnn.Controls.Add(btnSend);
             this.Controls.Add(groupAnn);
 
-            // Resource Management Section
             var groupRes = new GroupBox { Text = "Manage Resources", Location = new Point(400, 280), Size = new Size(370, 250), Font = new Font("Segoe UI", 10, FontStyle.Bold) };
             _lstResources = new ListBox { Location = new Point(15, 30), Size = new Size(340, 150), Font = new Font("Segoe UI", 10) };
             RefreshResources();
@@ -74,50 +77,81 @@ namespace Mental_web.Views.Admin
         private void RefreshResources()
         {
             _lstResources.Items.Clear();
-            var resources = _db.Resources.ToList();
-            foreach (var r in resources) _lstResources.Items.Add(r.Title);
+            try
+            {
+                using (var db = CreateContext())
+                {
+                    var resources = db.Resources.ToList();
+                    foreach (var r in resources) _lstResources.Items.Add(r.Title);
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Error loading resources: " + ex.Message); }
         }
 
         private void AddResource()
         {
-            string title = Microsoft.VisualBasic.Interaction.InputBox("Enter Resource Title:", "Add Resource", "");
-            if (!string.IsNullOrWhiteSpace(title))
+            using (var dialog = new ResourceDialog())
             {
-                _db.Resources.Add(new Resource { Title = title, ContentType = "Article", ContentBody = "New content placeholder", CreatedAt = DateTime.Now });
-                _db.SaveChanges();
-                RefreshResources();
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        using (var db = CreateContext())
+                        {
+                            db.Resources.Add(new Resource { 
+                                Title = dialog.ResourceTitle, 
+                                ContentType = "Article", 
+                                ContentBody = dialog.ResourceContent, 
+                                CreatedAt = DateTime.Now 
+                            });
+                            db.SaveChanges();
+                            RefreshResources();
+                        }
+                    }
+                    catch (Exception ex) { MessageBox.Show("Error adding resource: " + ex.Message); }
+                }
             }
         }
 
         private void DeleteResource()
         {
-            if (_lstResources.SelectedItem != null)
+            if (_lstResources.SelectedItem == null) return;
+            string title = _lstResources.SelectedItem.ToString()!;
+            if (MessageBox.Show($"Delete '{title}'?", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                string title = _lstResources.SelectedItem.ToString();
-                var res = _db.Resources.FirstOrDefault(r => r.Title == title);
-                if (res != null)
+                try
                 {
-                    _db.Resources.Remove(res);
-                    _db.SaveChanges();
-                    RefreshResources();
+                    using (var db = CreateContext())
+                    {
+                        var res = db.Resources.FirstOrDefault(r => r.Title == title);
+                        if (res != null) { db.Resources.Remove(res); db.SaveChanges(); RefreshResources(); }
+                    }
                 }
+                catch (Exception ex) { MessageBox.Show("Error deleting resource: " + ex.Message); }
             }
         }
 
         private void SendAnnouncement()
         {
             string msg = _txtAnnounce.Text;
-            if (!string.IsNullOrWhiteSpace(msg))
+            if (string.IsNullOrWhiteSpace(msg)) return;
+            try
             {
-                var students = _db.Students.ToList();
-                foreach (var s in students)
+                using (var db = CreateContext())
                 {
-                    _db.Notifications.Add(new Notification { StudentId = s.StudentId, Message = msg, Status = "Unread", CreatedAt = DateTime.Now });
+                    var students = db.Students.ToList();
+                    foreach (var s in students) db.Notifications.Add(new Notification { StudentId = s.StudentId, Message = msg, Status = "Unread", CreatedAt = DateTime.Now });
+                    db.SaveChanges();
+                    _txtAnnounce.Clear();
+                    MessageBox.Show("Announcement broadcasted!", "Success");
                 }
-                _db.SaveChanges();
-                _txtAnnounce.Clear();
-                MessageBox.Show("Announcement broadcasted successfully!", "Success");
             }
+            catch (Exception ex) { MessageBox.Show("Error sending announcement: " + ex.Message); }
+        }
+
+        private MentalHealthContext CreateContext()
+        {
+            return new MentalHealthContext(Program.ServiceProvider.GetRequiredService<DbContextOptions<MentalHealthContext>>());
         }
 
         private void CreateStatCard(string title, string mainVal, string subVal, Point loc, Color backColor, Color foreColor)
