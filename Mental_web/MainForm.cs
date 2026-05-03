@@ -30,15 +30,15 @@ namespace Mental_web
             };
             this.btnAssessment.Click += (s, e) => {
                 if (_currentUser?.Role == "Admin") ShowView(new Views.Admin.StudentManagementControl(), "Student Management");
-                else ShowView(new Views.AssessmentControl(), "Assessment");
+                else ShowView(new Views.AssessmentControl(_currentUser!), "Assessment");
             };
             this.btnAppointment.Click += (s, e) => {
                 if (_currentUser?.Role == "Admin" || _currentUser?.Role == "Counselor") ShowView(new Views.Admin.AppointmentQueueControl(), "Appointment Queue");
-                else ShowView(new Views.AppointmentControl(), "Appointments");
+                else ShowView(new Views.AppointmentControl(_currentUser!), "Appointments");
             };
             this.btnResources.Click += (s, e) => ShowView(new Views.ResourcesControl(), "Resources");
-            this.btnProgress.Click += (s, e) => ShowView(new Views.ProgressControl(_currentUser), "Progress Tracking");
-            this.btnProfile.Click += (s, e) => ShowView(new Views.ProfileControl(_currentUser), "My Profile");
+            this.btnProgress.Click += (s, e) => ShowView(new Views.ProgressControl(_currentUser!), "Progress Tracking");
+            this.btnProfile.Click += (s, e) => ShowView(new Views.ProfileControl(_currentUser!), "My Profile");
 
             // Repurpose Admin mode button to Logout
             btnAdminMode.Text = "   Logout";
