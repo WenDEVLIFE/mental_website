@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mental_web_Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c20eb9d456ebc22bba129a069eeb067ddd0ac05f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e703f2654abf177e68f3db733b33d06bf25d7ffd")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mental_web_Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mental_web_Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
