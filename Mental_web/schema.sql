@@ -1,6 +1,9 @@
 -- Mental Health System Database Schema
 -- Target: MySQL
 
+CREATE DATABASE IF NOT EXISTS `mental_health` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `mental_health`;
+
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -132,3 +135,31 @@ CREATE TABLE `notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Insert Sample Data
+-- ----------------------------
+-- All sample users use the password: password123
+
+INSERT INTO `admins` (`username`, `password_hash`, `role`) VALUES
+('admin', '75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=', 'Admin');
+
+INSERT INTO `counselors` (`name`, `specialization`, `email`, `contact_number`, `password_hash`) VALUES
+('Dr. Sarah Jenkins', 'Cognitive Behavioral Therapy', 'counselor1@university.edu', '555-0101', '75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8='),
+('Dr. Marcus Cole', 'Stress Management', 'counselor2@university.edu', '555-0102', '75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=');
+
+INSERT INTO `students` (`first_name`, `last_name`, `course`, `year_level`, `email`, `contact_number`, `password_hash`) VALUES
+('John', 'Doe', 'Computer Science', 2, 'student1@student.edu', '555-1234', '75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8='),
+('Jane', 'Smith', 'Psychology', 3, 'student2@student.edu', '555-5678', '75K3eLr+dx6JJFuJ7LwIpEpOFmwGZZkRiB84PURz6U8=');
+
+INSERT INTO `appointments` (`student_id`, `counselor_id`, `date`, `time`, `status`) VALUES
+(1, 1, DATE_ADD(CURDATE(), INTERVAL 2 DAY), '10:00:00', 'Approved'),
+(2, 2, DATE_ADD(CURDATE(), INTERVAL 3 DAY), '14:30:00', 'Pending');
+
+INSERT INTO `schedules` (`counselor_id`, `available_date`, `available_time`) VALUES
+(1, DATE_ADD(CURDATE(), INTERVAL 2 DAY), '10:00:00'),
+(1, DATE_ADD(CURDATE(), INTERVAL 2 DAY), '11:00:00'),
+(2, DATE_ADD(CURDATE(), INTERVAL 3 DAY), '14:30:00');
+
+INSERT INTO `notifications` (`student_id`, `message`, `status`) VALUES
+(1, 'Your appointment with Dr. Sarah Jenkins is confirmed.', 'unread');
