@@ -13,7 +13,6 @@ namespace Mental_web.Views
     public partial class AssessmentControl : UserControl
     {
         private UserSession _session;
-        private MentalHealthContext _db;
         private int _currentIndex = 0;
         private List<string> _questions = new List<string> {
             "How often have you been bothered by feeling down, depressed, or hopeless?",
@@ -34,13 +33,11 @@ namespace Mental_web.Views
         public AssessmentControl(UserSession session)
         {
             _session = session;
-            _db = Program.ServiceProvider.GetRequiredService<MentalHealthContext>();
             InitializeComponent();
             SetupUI();
             ShowQuestion();
         }
 
-        // Add a parameterless constructor for designer/placeholders
         public AssessmentControl() : this(new UserSession()) { }
 
         private void SetupUI()
@@ -114,7 +111,6 @@ namespace Mental_web.Views
                     CreateOptionButton(options[i], i, i * 65);
                 }
 
-                // Update Progress Bar
                 Panel progressBar = new Panel {
                     Width = (int)(((_currentIndex + 1) / (float)_questions.Count) * 700),
                     Height = 8,
@@ -171,12 +167,10 @@ namespace Mental_web.Views
             if (percentage > 70) resultStatus = "High Support Needed";
             else if (percentage > 40) resultStatus = "Moderate Stress";
 
-            // Save to DB
             try 
             {
                 using (var db = new MentalHealthContext(Program.ServiceProvider.GetRequiredService<DbContextOptions<MentalHealthContext>>()))
                 {
-                    // Ensure the student exists to avoid FK violation
                     var studentExists = db.Students.Any(s => s.StudentId == _session.UserId);
                     if (studentExists)
                     {
@@ -193,23 +187,24 @@ namespace Mental_web.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Could not save assessment results to the database. Your session may have expired or you are not logged in as a student.", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Result saved locally only. Database sync failed.", "Database Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
-            // UI
             this.Controls.Clear();
+            
+            // Centered Results UI
             var lblFinish = new Label {
                 Text = "Assessment Complete",
-                Font = new Font("Segoe UI", 22, FontStyle.Bold),
+                Font = new Font("Segoe UI", 24, FontStyle.Bold),
                 ForeColor = AppTheme.PrimaryColor,
-                Location = new Point(0, 80),
-                Width = 800,
+                Location = new Point(0, 120), // Moved down to avoid header cutoff
+                Size = new Size(800, 60),
                 TextAlign = ContentAlignment.TopCenter
             };
             this.Controls.Add(lblFinish);
 
             var chart = new Components.CircularProgressBar {
-                Location = new Point(300, 180),
+                Location = new Point(300, 200),
                 Size = new Size(200, 200),
                 Value = 100 - percentage,
                 ProgressColor = percentage > 40 ? Color.FromArgb(230, 126, 34) : AppTheme.PrimaryColor,
@@ -219,22 +214,22 @@ namespace Mental_web.Views
 
             var lblResult = new Label {
                 Text = $"Your Well-being Score: {100 - percentage}%\nStatus: {resultStatus}",
-                Font = new Font("Segoe UI", 14),
-                Location = new Point(0, 400),
-                Width = 800,
+                Font = new Font("Segoe UI", 13),
+                Location = new Point(0, 420),
+                Size = new Size(800, 60),
                 TextAlign = ContentAlignment.TopCenter,
-                ForeColor = Color.FromArgb(64, 64, 64)
+                ForeColor = Color.FromArgb(100, 100, 100)
             };
             this.Controls.Add(lblResult);
             
             var btnDone = new Button {
                 Text = "Return to Dashboard",
-                Size = new Size(250, 50),
-                Location = new Point(275, 480),
+                Size = new Size(280, 50),
+                Location = new Point(260, 500), // Better centered (800-280)/2 = 260
                 BackColor = AppTheme.PrimaryColor,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
             UIHelper.MakeRounded(btnDone, 12);
