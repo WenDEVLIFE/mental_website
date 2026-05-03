@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Mental_web.UI;
 using Mental_web.Data;
 
@@ -171,14 +172,29 @@ namespace Mental_web.Views
             else if (percentage > 40) resultStatus = "Moderate Stress";
 
             // Save to DB
-            var assessment = new SelfAssessment {
-                StudentId = _session.UserId,
-                DateTaken = DateTime.Now,
-                Score = 100 - percentage, // Well-being score
-                Result = resultStatus
-            };
-            _db.SelfAssessments.Add(assessment);
-            _db.SaveChanges();
+            try 
+            {
+                using (var db = new MentalHealthContext(Program.ServiceProvider.GetRequiredService<DbContextOptions<MentalHealthContext>>()))
+                {
+                    // Ensure the student exists to avoid FK violation
+                    var studentExists = db.Students.Any(s => s.StudentId == _session.UserId);
+                    if (studentExists)
+                    {
+                        var assessment = new SelfAssessment {
+                            StudentId = _session.UserId,
+                            DateTaken = DateTime.Now,
+                            Score = 100 - percentage,
+                            Result = resultStatus
+                        };
+                        db.SelfAssessments.Add(assessment);
+                        db.SaveChanges();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not save assessment results to the database. Your session may have expired or you are not logged in as a student.", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
 
             // UI
             this.Controls.Clear();
